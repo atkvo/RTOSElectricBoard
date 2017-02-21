@@ -76,7 +76,7 @@ CFLAGS += --specs=nano.specs
 CFLAGS += -T "loader.ld"
 # CFLAGS += -ffunctions-sections
 CFLAGS += -fmessage-length=0
-CFLAGS += -std=c++11
+# CFLAGS += -std=c++11
 CFLAGS += -Xlinker --gc-sections
 CFLAGS += -fabi-version=0
 CFLAGS += -fno-exceptions
