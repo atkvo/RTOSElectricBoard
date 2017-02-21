@@ -28,6 +28,7 @@
 #include "lpc_sys.h"        // Set input/output char functions
 #include "utilities.h"      // PRINT_EXECUTION_SPEED()
 #include "handlers.hpp"     // Command-line handlers
+#include "custom_handlers.hpp"
 
 #include "file_logger.h"
 #include "io.hpp"           // Board IO
@@ -110,6 +111,11 @@ bool terminalTask::taskEntry()
                                                );
     cp.addHandler(learnIrHandler,  "learn",    "Begin to learn IR codes for numbers 0-9");
     cp.addHandler(wirelessHandler, "wireless", "Use 'wireless' to see the nested commands");
+
+    cp.addHandler(flashHandler,    "spif", "'spif status'  : prints the status registers\n"
+                                               "'spif update'  : updates the status registers\n" 
+                                               "'spif upprint' : updates the status registers, then prints it\n" 
+                                                );
 
     /* Firmware upgrade handlers
      * Please read "netload_readme.txt" at ref_and_datasheets directory.
