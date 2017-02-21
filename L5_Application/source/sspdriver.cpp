@@ -82,7 +82,7 @@ void SSPDriver::SetClock(uint32_t frequency) {
 }
 
 bool SSPDriver::SetLoopback(bool state) {
-    if (mSSP == nullptr) {
+    if (mSSP == 0) {
         return false;
     }
 
