@@ -58,7 +58,7 @@ int main(void)
 
     /* Consumes very little CPU, but need highest priority to handle mesh network ACKs */
     scheduler_add_task(new wirelessTask(PRIORITY_CRITICAL));
-    // scheduler_add_task(new led_switch_task(PRIORITY_LOW));
+    scheduler_add_task(new led_switch_task(PRIORITY_LOW, false));
 
     // scheduler_add_task(new FlashMemoryTask(PRIORITY_LOW));
 

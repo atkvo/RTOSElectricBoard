@@ -9,8 +9,8 @@
 #include "InternalIO.hpp"
 #include "LPC17xx.h"
 
-led_switch_task::led_switch_task(uint8_t priority)
-    : scheduler_task("LED Switch", 1024, priority)
+led_switch_task::led_switch_task(uint8_t priority, bool useInternals=false)
+    : scheduler_task("LED Switch", 1024, priority, (void*)useInternals)
 {
 }
 
@@ -52,10 +52,12 @@ bool led_switch_task::taskEntry() {
 }
 
 bool led_switch_task::run(void *p) {
-    bool is_pressed = false;
-    for (int i = 0; i < MAX_SWITCHES; i++) {
-        is_pressed = is_switch_pressed(i);
-        set_internal_led(i, is_pressed);
+    if ((bool)p) {
+        bool is_pressed = false;
+        for (int i = 0; i < MAX_SWITCHES; i++) {
+            is_pressed = is_switch_pressed(i);
+            set_internal_led(i, is_pressed);
+        }
     }
     set_external_led(is_external_switch_pressed());
     return true;

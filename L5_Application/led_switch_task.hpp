@@ -37,7 +37,7 @@
 
 class led_switch_task : public scheduler_task {
 public:
-	led_switch_task(uint8_t priority);
+	led_switch_task(uint8_t priority, bool useInternals);
 	bool taskEntry();
 	bool run(void *p);
 private:
