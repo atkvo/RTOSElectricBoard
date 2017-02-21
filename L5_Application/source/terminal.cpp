@@ -117,6 +117,10 @@ bool terminalTask::taskEntry()
                                                "'spif upprint' : updates the status registers, then prints it\n" 
                                                 );
 
+    cp.addHandler(ledHandler,      "led",      "'x ON' : turn on LED x\n"
+                                               "'x OFF : turn off LED x\n"
+                                               "set 'x' to A control all LEDs at once\n");
+
     /* Firmware upgrade handlers
      * Please read "netload_readme.txt" at ref_and_datasheets directory.
      */
