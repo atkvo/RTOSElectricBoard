@@ -9,6 +9,7 @@ typedef enum {
     READ_BUF1_HF    = 0xD4,
     READ_BUF2_HF    = 0xD6,
     READ_STATUS_REG = 0xD7,
+    READ_ID         = 0x9F,
 
     WRITE_BUF1      = 0x84,
     WRITE_BUF2      = 0x87
@@ -38,16 +39,28 @@ typedef struct {
     bool EraseSuspend;      // Bit 0
 } sFlashMemoryStatus;
 
+
+typedef struct {
+    uint8_t ManufacturerID;     // 0x1F
+    uint8_t DeviceID1;          // 0x26
+    uint8_t DeviceID2;          // 0x00
+} sFlashID;
+
 class FlashMemoryDriver {
 private:
     SSPDriver *mSSP;
-    sFlashMemoryStatus state;
+    sFlashMemoryStatus mState;
+    sFlashID mID;
     void parseStatusBits(uint8_t b1, uint8_t b2);
+    void parseIDBits(uint8_t b1, uint8_t b2, uint8_t b3);
     void initSSP();
 public:
     FlashMemoryDriver(e_ssp sspNumber);
     void UpdateStatusRegisters(bool print);
+    void UpdateIDRegisters(bool print);
+    void UpdateAllRegisters(bool print);
     void PrintStatusRegisters();
+    void PrintID();
     ~FlashMemoryDriver();
 };
 

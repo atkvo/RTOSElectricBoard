@@ -8,15 +8,18 @@ CMD_HANDLER_FUNC(flashHandler) {
     static FlashMemoryDriver flashDriver(SSP1);
     /* handle here */
 
-    if (cmdParams.compareToIgnoreCase("status")) {
+    if (cmdParams.compareToIgnoreCase("printid")) {
+        flashDriver.PrintID();
+    }
+    else if (cmdParams.compareToIgnoreCase("printstat")) {
         flashDriver.PrintStatusRegisters();
     }
     else if (cmdParams.compareToIgnoreCase("update")) {
         flashDriver.UpdateStatusRegisters(false);
+        flashDriver.UpdateIDRegisters(false);
     }
-    else if (cmdParams.compareToIgnoreCase("upprint")) {
-        flashDriver.UpdateStatusRegisters(false);
-        flashDriver.PrintStatusRegisters();
+    else if (cmdParams.compareToIgnoreCase("uprintall")) {
+        flashDriver.UpdateAllRegisters(true);
     }
     else {
         printf("No command specified.\n");

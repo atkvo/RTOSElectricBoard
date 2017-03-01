@@ -37,6 +37,11 @@ void FlashMemoryDriver::initSSP() {
     mSSP = new SSPDriver(SSP1);
 }
 
+void FlashMemoryDriver::UpdateAllRegisters(bool print=false) {
+    UpdateStatusRegisters(print);
+    UpdateIDRegisters(print);
+}
+
 void FlashMemoryDriver::UpdateStatusRegisters(bool print=false) {
     uint8_t statusreg[2];
     mSSP->AssertCS();
@@ -55,31 +60,64 @@ void FlashMemoryDriver::UpdateStatusRegisters(bool print=false) {
     }
 }
 
+void FlashMemoryDriver::UpdateIDRegisters(bool print=false) {
+    const int ID_BYTES_TO_READ = 3;
+    uint8_t idreg[ID_BYTES_TO_READ];
+    mSSP->AssertCS();
+    mSSP->TransferByte(READ_ID);
+    for (int i = 0; i < ID_BYTES_TO_READ; i++) {
+        idreg[i] = mSSP->TransferByte(0xFF);
+    }
+
+    mSSP->DeassertCS();
+    parseIDBits(idreg[0], idreg[1], idreg[2]);
+
+    if (print) {
+        PrintID();
+    }
+}
+
 void FlashMemoryDriver::parseStatusBits(uint8_t b1, uint8_t b2) {
     // Byte 1
-    state.Ready = (b1 & (1 << READY_BIT));
-    state.CompareResult = (b1 & (1 << CMP_BIT));
-    state.DensityCode = (0b1011 & (b1 >> DENSITY_BIT));
-    state.ProtectionEnabled = (b1 & (1 << PROTECT_BIT));
-    state.PageSize = (b1 & (1 << PAGE_SIZE_BIT) ? Power2 : Standard);
+    mState.Ready = (b1 & (1 << READY_BIT));
+    mState.CompareResult = (b1 & (1 << CMP_BIT));
+    mState.DensityCode = (0b1011 & (b1 >> DENSITY_BIT));
+    mState.ProtectionEnabled = (b1 & (1 << PROTECT_BIT));
+    mState.PageSize = (b1 & (1 << PAGE_SIZE_BIT) ? Power2 : Standard);
 
     // Byte 2
-    state.EraseProgramErr = (b2 & (1 << EPE));
-    state.SectorLockdown  = (b2 & (1 << SLE));
-    state.ProgramSuspend2 = (b2 & (1 << PS2));
-    state.ProgramSuspend1 = (b2 & (1 << PS1));
-    state.EraseSuspend    = (b2 & (1 << ES ));
+    mState.EraseProgramErr = (b2 & (1 << EPE));
+    mState.SectorLockdown  = (b2 & (1 << SLE));
+    mState.ProgramSuspend2 = (b2 & (1 << PS2));
+    mState.ProgramSuspend1 = (b2 & (1 << PS1));
+    mState.EraseSuspend    = (b2 & (1 << ES ));
+}
+
+void FlashMemoryDriver::parseIDBits(uint8_t b1, uint8_t b2, uint8_t b3) {
+    mID.ManufacturerID = b1;
+    mID.DeviceID1 = b2;
+    mID.DeviceID2 = b3;
 }
 
 void FlashMemoryDriver::PrintStatusRegisters() {
     printf("\n=========================\n");
     printf("   FLASH MEMORY STATUS   \n");
     printf("-------------------------\n");
-    printf("   Ready:           %d\n", state.Ready ? 1 : 0);
-    printf("   Compare Result:  %d\n", state.CompareResult ? 1 : 0);
-    printf("   DensityCode:     0x%x\n", state.DensityCode);
-    printf("   Erase/Prgrm Err: %d\n", state.EraseProgramErr ? 1 : 0);
-    printf("   Sector Locked:   %d\n", state.SectorLockdown ? 1 : 0);
-    printf("   Erase Suspend:   %d\n", state.EraseSuspend ? 1 : 0);
+    printf("   Ready:           %d\n", mState.Ready ? 1 : 0);
+    printf("   Compare Result:  %d\n", mState.CompareResult ? 1 : 0);
+    printf("   DensityCode:     0x%x\n", mState.DensityCode);
+    printf("   Erase/Prgrm Err: %d\n", mState.EraseProgramErr ? 1 : 0);
+    printf("   Sector Locked:   %d\n", mState.SectorLockdown ? 1 : 0);
+    printf("   Erase Suspend:   %d\n", mState.EraseSuspend ? 1 : 0);
+    printf("=========================\n\n");
+}
+
+void FlashMemoryDriver::PrintID() {
+    printf("\n=========================\n");
+    printf("   FLASH ID              \n");
+    printf("-------------------------\n");
+    printf("   Manufacturer:    0x%x\n", mID.ManufacturerID);
+    printf("   Device Byte 1:   0x%x\n", mID.DeviceID1);
+    printf("   Device Byte 2:   0x%x\n", mID.DeviceID2);
     printf("=========================\n\n");
 }

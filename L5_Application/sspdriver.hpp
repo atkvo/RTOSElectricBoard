@@ -62,8 +62,25 @@ public:
     SSPDriver(e_ssp ssp);
     void DeassertCS();
     void AssertCS();
+    /**
+     * @brief Transfer a byte across the SSP and also reads in a byte simultaneously
+     * 
+     * Use AssertCS/DeassertCS to select the SSP slave
+     * @param dataOut - the byte to transfer out 
+     * @returns the read byte
+     */
     uint8_t TransferByte(uint8_t dataOut);
+
+    /**
+     * Sets SSP frequency in Hz.
+     *
+     * @param frequency - desired frequency in Hz
+     */
     void SetClock(uint32_t frequency);
+
+    /**
+     * Routes MOSI to MISO. Useful for testing if read/write work OK.
+     */
     bool SetLoopback(bool state);
 };
 

@@ -5,7 +5,6 @@
  *      Author: atkvo
  */
 
-#include "sys_config.h"
 #include "sspdriver.hpp"
 
 SSPDriver::SSPDriver(e_ssp ssp) : mSSPIndex(ssp) {
@@ -66,13 +65,15 @@ int8_t SSPDriver::getDividerFromPCLK() {
 }
 
 void SSPDriver::SetClock(uint32_t frequency) {
-    unsigned int sysClk = sys_get_cpu_clock();
+    const int DIVIDER_MAX = 254;
+    const unsigned int sysClk = 48000000;
     uint8_t pclkDivider = getDividerFromPCLK();
     uint8_t divider = 2;    // ranges from 2 to 254
 
     uint8_t sspBaseClk = sysClk / pclkDivider;
 
-    for (divider = 2; divider <= 254; divider += 2) {
+    /* Test all divider values until just under maximum frequency */
+    for (divider = 2; divider <= DIVIDER_MAX; divider += 2) {
         if ((sspBaseClk/divider) < frequency) {
             break;
         }

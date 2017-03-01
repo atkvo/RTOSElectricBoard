@@ -112,9 +112,11 @@ bool terminalTask::taskEntry()
     cp.addHandler(learnIrHandler,  "learn",    "Begin to learn IR codes for numbers 0-9");
     cp.addHandler(wirelessHandler, "wireless", "Use 'wireless' to see the nested commands");
 
-    cp.addHandler(flashHandler,    "spif", "'spif status'  : prints the status registers\n"
-                                               "'spif update'  : updates the status registers\n" 
-                                               "'spif upprint' : updates the status registers, then prints it\n" 
+    cp.addHandler(flashHandler,    "spif",     "Please run an update type of command before printing.\n"
+                                               "'spif printid'    : prints the ID registers\n"
+                                               "'spif printstat'  : prints the status registers\n" 
+                                               "'spif update'     : updates the ID and status registers\n" 
+                                               "'spif uprintall' : updates the ID/status registers, then prints them\n" 
                                                 );
 
     cp.addHandler(ledHandler,      "led",      "'x ON' : turn on LED x\n"

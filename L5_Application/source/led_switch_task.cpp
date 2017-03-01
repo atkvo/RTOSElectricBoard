@@ -53,11 +53,11 @@ bool led_switch_task::taskEntry() {
 
 bool led_switch_task::run(void *p) {
     if ((bool)p) {
-        bool is_pressed = false;
-        for (int i = 0; i < MAX_SWITCHES; i++) {
-            is_pressed = is_switch_pressed(i);
-            set_internal_led(i, is_pressed);
-        }
+        // bool is_pressed = false;
+        // for (int i = 0; i < MAX_SWITCHES; i++) {
+        //     is_pressed = is_switch_pressed(i);
+        //     set_internal_led(i, is_pressed);
+        // }
     }
     set_external_led(is_external_switch_pressed());
     return true;
