@@ -1,6 +1,7 @@
 #include "UART2Task.hpp"
 #include "uart2driver.h"
 #include "printf_lib.h"
+#include <string.h>
 
 UART2Task::UART2Task(uint8_t priority) : scheduler_task("uart 2 polling", 1024, priority)
 {
@@ -20,18 +21,22 @@ bool UART2Task::init(void)
 
 bool UART2Task::run(void *param)
 {
-    const char txbuf[] = "Hello";
-    const uint32_t MAX_LEN = 10;
-    char buf[MAX_LEN] = { 0 };
-    for (int i = 0; i < 5; i++)
+    static uint32_t txcount = 0;
+    static const char txbuf[] = "ANDREW";
+    static const uint8_t txlen = 6;
+    uart2_tx(txbuf[txcount]);
+
+    char c = uart2_rx_char();
+    if (c)
     {
-        uart2_tx(txbuf[i]);
+        u0_dbg_printf("%c", c);
     }
 
-    uint32_t bytesread = uart2_rx(buf, MAX_LEN);
-    if (bytesread > 0)
+    txcount++;
+    if (txcount >= txlen)
     {
-        u0_dbg_printf("Bytes read: %d; Message: %s\n", bytesread, buf);
+        txcount = 0;
     }
+
     return true;
 }

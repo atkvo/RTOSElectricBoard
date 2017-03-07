@@ -48,20 +48,21 @@ void uart2_init(void)
     LPC_UART2->LCR = 0;
 
     /* Setup Transmit Parameters */
-    // 8 E 1
+    // 8 N 1
     const uint8_t WORD_LEN_8 = (3 << 0);
+    const uint8_t STOPBIT_2 = (1 << 2);
     LPC_UART2->LCR = 0;     // Reset entire register
-    LPC_UART2->LCR |= WORD_LEN_8;
+    LPC_UART2->LCR |= WORD_LEN_8 | STOPBIT_2;
 }
 
 void uart2_tx(char c)
 {
     const uint8_t TRANSMIT_EMPTY_BIT = 1 << 6;
-    LPC_UART2->THR = c;
     while (!(LPC_UART2->LSR & TRANSMIT_EMPTY_BIT))
     {
         ;
     }
+    LPC_UART2->THR = c;
 }
 
 uint32_t uart2_rx(char * buf, uint32_t max)
@@ -76,4 +77,17 @@ uint32_t uart2_rx(char * buf, uint32_t max)
     }
 
     return i;
+}
+
+char uart2_rx_char()
+{
+    const static uint8_t RDR_BIT = (1 << 0);
+    char rx = 0;
+
+    if (LPC_UART2->LSR & RDR_BIT)
+    {
+        rx = LPC_UART2->RBR;
+    }
+
+    return rx;
 }

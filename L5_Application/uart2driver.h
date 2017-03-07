@@ -8,6 +8,7 @@ extern "C" {
 void uart2_init(void);
 void uart2_tx(char c);
 uint32_t uart2_rx(char * buf, uint32_t max);
+char uart2_rx_char();
 
 #ifdef __cplusplus
 }
