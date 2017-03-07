@@ -1,9 +1,34 @@
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "LPC17xx.h"
 #include "uart2driver.h"
 #include "sys_config.h"
+#include "FreeRTOS.h"
+#include "queue.h"
+#include "lpc_isr.h"
+
+QueueHandle_t uart2_rx_queue;
+const uint8_t RX_QUEUE_SIZE = 64;
+const uint8_t THRE_INTERRUPT_BIT = (1 << 1);
+const uint8_t RBR_INTERRUPT_BIT = (1 << 0);
+
+void UART2_INT_HANDLER()
+{
+    const uint8_t THRE_INT_ID = (1 << 1);
+    const uint8_t RDA_INT_ID = (2 << 1);
+    uint32_t int_reg = LPC_UART2->IIR;
+    if (int_reg & RDA_INT_ID)
+    {
+        char c = 0;
+        c = LPC_UART2->RBR;
+        xQueueSendFromISR(uart2_rx_queue, &c, 0);
+    }
+}
 
 void uart2_init(void)
-{
+{ 
     /* 1. Enable PCONP register
      * 2. Setup PCLKSEL1 register for PCLK_UART2
      * 3. Setup baud rate (baud = PCLK)
@@ -15,7 +40,8 @@ void uart2_init(void)
      *      Setup pins (PINSEL/PINMODE)
      *          Receive should NOT have pull-downs enabled
      */
-
+    isr_register(UART2_IRQn, &UART2_INT_HANDLER);
+    uart2_rx_queue = xQueueCreate(RX_QUEUE_SIZE, sizeof(char));
     const uint32_t UART2_PCON_BIT = (1 << 24);
     const uint32_t UART2_PCLK_BY_1_BITS = (1 << 16);
 
@@ -53,11 +79,19 @@ void uart2_init(void)
     const uint8_t STOPBIT_2 = (1 << 2);
     LPC_UART2->LCR = 0;     // Reset entire register
     LPC_UART2->LCR |= WORD_LEN_8 | STOPBIT_2;
+
+    /* Enable Interrupts */
+    NVIC_EnableIRQ(UART2_IRQn);
+    LPC_UART2->FCR |= 1;    // Enable FIFO
+    // LPC_UART2->IER |= RBR_INTERRUPT_BIT | THRE_INTERRUPT_BIT;
+    LPC_UART2->IER |= RBR_INTERRUPT_BIT;
+
 }
 
 void uart2_tx(char c)
 {
     const uint8_t TRANSMIT_EMPTY_BIT = 1 << 6;
+
     while (!(LPC_UART2->LSR & TRANSMIT_EMPTY_BIT))
     {
         ;
@@ -84,10 +118,15 @@ char uart2_rx_char()
     const static uint8_t RDR_BIT = (1 << 0);
     char rx = 0;
 
-    if (LPC_UART2->LSR & RDR_BIT)
+    if (xQueueReceive(uart2_rx_queue, (void*)&rx, NULL) == pdTRUE)
     {
-        rx = LPC_UART2->RBR;
+        return rx;
     }
 
-    return rx;
+    return 0;
 }
+
+
+#ifdef __cplusplus
+}
+#endif
