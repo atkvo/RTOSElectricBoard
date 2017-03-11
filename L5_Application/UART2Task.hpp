@@ -7,8 +7,8 @@ private:
 public:
     UART2Task(uint8_t priority);
     virtual ~UART2Task();
-    virtual bool init(void);
-    virtual bool run(void *param);
+    bool init(void);
+    bool run(void *param);
 };
 
 
