@@ -18,9 +18,10 @@ typedef enum {
 
 class AccelProducerTask: public scheduler_task {
 private:
+    bool suspendFirstRun;
     QueueHandle_t xDirQueue;
 public:
-    AccelProducerTask(uint8_t priority);
+    AccelProducerTask(uint8_t priority, bool startImmediately);
     virtual ~AccelProducerTask();
     virtual bool init(void);
     virtual bool run(void *param);

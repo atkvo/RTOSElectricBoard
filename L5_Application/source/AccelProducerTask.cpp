@@ -2,8 +2,9 @@
 #include "acceleration_sensor.hpp"
 #include <stdio.h>
 
-AccelProducerTask::AccelProducerTask(uint8_t priority) :
-    scheduler_task("accel-producer", 1024, priority, NULL)
+AccelProducerTask::AccelProducerTask(uint8_t priority, bool startImmediately) :
+    scheduler_task("accel-producer", 1024, priority, NULL),
+    suspendFirstRun(!startImmediately)
 {
 }
 
@@ -33,6 +34,13 @@ bool AccelProducerTask::init(void)
 
 bool AccelProducerTask::run(void *param)
 {
+    if (suspendFirstRun)
+    {
+        suspendFirstRun = false;
+        suspend();
+        return true;
+    }
+
     if (xDirQueue == NULL)
     {
         return false;
