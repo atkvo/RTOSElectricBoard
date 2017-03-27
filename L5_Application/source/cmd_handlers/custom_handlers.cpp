@@ -1,8 +1,29 @@
 
 #include <stdio.h>
+#include "scheduler_task.hpp"
 #include "command_handler.hpp"
 #include "FlashMemoryDriver.hpp"
 #include "InternalIO.hpp"
+
+CMD_HANDLER_FUNC(orientationCmd) 
+{
+    scheduler_task *orientationProducer = scheduler_task::getTaskPtrByName("accel-producer");
+    if (orientationProducer == NULL)
+    {
+        return false;
+    }
+
+    if (cmdParams == "on")
+    {
+        orientationProducer->resume();
+    }
+    else
+    {
+        orientationProducer->suspend();
+    }
+
+    return true;
+}
 
 CMD_HANDLER_FUNC(flashHandler) {
     static FlashMemoryDriver flashDriver(SSP1);
