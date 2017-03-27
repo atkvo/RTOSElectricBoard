@@ -27,6 +27,7 @@
 #include "examples/examples.hpp"
 #include "AccelProducerTask.hpp"
 #include "AccelConsumerTask.hpp"
+#include "SemaphoreTask.hpp"
 
 /**
  * The main() creates tasks or "threads".  See the documentation of scheduler_task class at scheduler_task.hpp
@@ -60,6 +61,7 @@ int main(void)
     scheduler_add_task(new wirelessTask(PRIORITY_CRITICAL));
     scheduler_add_task(new AccelProducerTask(PRIORITY_MEDIUM, false));
     scheduler_add_task(new AccelConsumerTask(PRIORITY_MEDIUM));
+    scheduler_add_task(new SemaphoreTask(PRIORITY_HIGH));
     // scheduler_add_task(new UART2Task(PRIORITY_MEDIUM));
     // scheduler_add_task(new led_switch_task(PRIORITY_LOW, false));
 
