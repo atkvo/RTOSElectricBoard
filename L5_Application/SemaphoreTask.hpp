@@ -4,6 +4,7 @@
 #include "scheduler_task.hpp"
 
 class SemaphoreTask : public scheduler_task {
+private:
 public:
     SemaphoreTask(uint8_t priority);
     virtual ~SemaphoreTask();
