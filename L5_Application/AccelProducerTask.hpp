@@ -1,5 +1,5 @@
-#ifndef _PRODUCER_TASK_HPP
-#define _PRODUCER_TASK_HPP
+#ifndef _ACCEL_PRODUCER_TASK_HPP
+#define _ACCEL_PRODUCER_TASK_HPP
 
 #include "scheduler_task.hpp"
 #include "FreeRTOS.h"
