@@ -29,6 +29,8 @@ bool AccelConsumerTask::run(void *param)
 
     if (xQueueReceive(shared_OrientationQueue, &orientation, portMAX_DELAY))
     {
+        printf("  Orientation: ");
+
         switch(orientation)
         {
             case up:

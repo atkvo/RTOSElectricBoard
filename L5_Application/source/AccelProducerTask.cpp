@@ -72,8 +72,10 @@ bool AccelProducerTask::run(void *param)
     }
 
     /* Get accelerometer data and push it to the queue every 1 second */
+    printf("Sending to queue\n");
     xQueueSend(getSharedObject(shared_SensorAccel), &orientation, portMAX_DELAY);
+    printf("Sent to queue\n");
 
-    vTaskDelay(500);
+    vTaskDelay(1000);
     return true;
 }
