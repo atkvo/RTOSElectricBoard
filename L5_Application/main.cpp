@@ -25,10 +25,8 @@
  */
 #include "tasks.hpp"
 #include "examples/examples.hpp"
-#include "AccelProducerTask.hpp"
-#include "AccelConsumerTask.hpp"
-#include "SemaphoreTask.hpp"
 #include "ElectricBoardControl.hpp"
+#include "ElectricBoardReceiver.hpp"
 
 /**
  * The main() creates tasks or "threads".  See the documentation of scheduler_task class at scheduler_task.hpp
@@ -66,6 +64,7 @@ int main(void)
     // scheduler_add_task(new UART2Task(PRIORITY_MEDIUM));
     // scheduler_add_task(new led_switch_task(PRIORITY_LOW, false));
     scheduler_add_task(new ElectricBoardControl(PRIORITY_LOW));
+    scheduler_add_task(new ElectricBoardReceiver(PRIORITY_LOW));
 
     // scheduler_add_task(new FlashMemoryTask(PRIORITY_LOW));
 
