@@ -4,7 +4,7 @@
 #include "wireless.h"
 
 ElectricBoardReceiver::ElectricBoardReceiver(uint8_t priority) :
-    scheduler_task("eboardreceiver", 1024, priority, NULL)
+    scheduler_task("rcvbrd", 1024, priority, NULL)
 {
 }
 
@@ -26,6 +26,8 @@ bool ElectricBoardReceiver::run(void *param)
         if (driveQueue)
         {
             // Parse packet.data[] for command here and send it off to the driveQueue
+            // float driveLevel = [parsed value]
+            // xQueueSend(driveQueue, &driveLevel, 0);     // Don't wait on queue full
         }
     }
 
