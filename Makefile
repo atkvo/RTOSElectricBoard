@@ -1,4 +1,4 @@
-EXECUTABLE = spilab
+EXECUTABLE = electricboard
 
 
 BUILDDIR = build
