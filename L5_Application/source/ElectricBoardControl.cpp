@@ -5,7 +5,7 @@
 #include "queue.h"
 
 ElectricBoardControl::ElectricBoardControl(uint8_t priority) :
-    scheduler_task("eboardctrl", 1024, priority, NULL),
+    scheduler_task("ctrlbrd", 1024, priority, NULL),
     driveTimeout(500)
 {
 }
@@ -17,8 +17,11 @@ ElectricBoardControl::~ElectricBoardControl()
 bool ElectricBoardControl::init(void)
 {
     bool commandQueueShared = false;
-    commandQueue = xQueueCreate(10, sizeof(float));
-    commandQueueShared = addSharedObject(shared_ElectricBoardQueue, &commandQueue);
+    commandQueue = xQueueCreate(20, sizeof(float));
+    if (commandQueue)
+    {
+        commandQueueShared = addSharedObject(shared_ElectricBoardQueue, commandQueue);
+    }
 
     motorChannel1 = new PWM(PWM::pwm1, 0);
     motorChannel2 = new PWM(PWM::pwm2, 0);
@@ -37,7 +40,6 @@ bool ElectricBoardControl::run(void *param)
     // will be set to 0. The trigger needs to be held to keep driving the motors.
     float driveLevel = 0;
     xQueueReceive(commandQueue, &driveLevel, driveTimeout);
-
     driveMotors(driveLevel);
     return true;
 }
