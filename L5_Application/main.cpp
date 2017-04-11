@@ -27,6 +27,7 @@
 #include "examples/examples.hpp"
 #include "ElectricBoardControl.hpp"
 #include "ElectricBoardReceiver.hpp"
+#include "LCDcontroller.hpp"
 
 /**
  * The main() creates tasks or "threads".  See the documentation of scheduler_task class at scheduler_task.hpp
@@ -107,6 +108,10 @@ int main(void)
         scheduler_add_task(new queue_rx());
     #endif
 
+    // Activate the LCD controller and drivers
+#if 1
+        scheduler_add_task(new LCDcontroller(PRIORITY_MEDIUM));
+#endif
     /**
      * Another example of shared handles and producer/consumer using a queue.
      * In this example, producer will produce as fast as the consumer can consume.
