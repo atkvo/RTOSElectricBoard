@@ -1,9 +1,13 @@
 
+#ifndef TFTLCD_H
+#define TFTLCD_H
+
 //#include <WProgram.h>
-//#include <Arduino.h>
+////#include <Arduino.h>
 // comment or uncomment the next line for special pinout!
 //#define USE_ADAFRUIT_SHIELD_PINOUT
-
+#include <stdint.h>
+#include "gpio.hpp"
 // register names
 
 #define TFTLCD_DRIV_ID_READ		0x00
@@ -50,11 +54,39 @@
 #define TFTLCD_PANEL_IF_CTRL1		0x90
 #define TFTLCD_PANEL_IF_CTRL2		0x92
 
+#define LOW     0
+#define HIGH    1
+
 //#define TFTLCD_DELAYCMD                0xFF
 
 #define swap(a, b) { int16_t t = a; a = b; b = t; }
 
-class TFTLCD : public Print {
+class TFTLCD {
+  private:
+  void drawCircleHelper(uint16_t x0, uint16_t y0,
+            uint16_t r, uint8_t corner,
+            uint16_t color);
+  void fillCircleHelper(uint16_t x0, uint16_t y0,
+            uint16_t r, uint8_t corner,
+            uint16_t delta, uint16_t color);
+
+  uint8_t read8(void);
+  GPIO resetSelect;
+  GPIO chipSelect;
+  GPIO comm_data;
+  GPIO writeSelect;
+  GPIO readSelect;
+
+//  uint8_t _cs, _cd, _reset, _wr, _rd;
+//
+//  uint8_t csport, cdport, wrport, rdport;
+//  uint8_t cspin, cdpin, wrpin, rdpin;
+
+  uint16_t _width, _height;
+  uint8_t textsize;
+  uint16_t cursor_x, cursor_y;
+  uint16_t textcolor;
+  uint8_t rotation;
  public:
   TFTLCD(uint8_t cs, uint8_t cd, uint8_t wr,
 	 uint8_t rd, uint8_t reset);
@@ -99,7 +131,8 @@ class TFTLCD : public Print {
   void setCursor(uint16_t x, uint16_t y);
   void setTextColor(uint16_t c);
   void setTextSize(uint8_t s);
-  virtual size_t write(uint8_t);
+//  virtual size_t write(uint8_t);
+  virtual void write(uint8_t);
 
   void drawChar(uint16_t x, uint16_t y, char c,
 		uint16_t color, uint8_t s = 1);
@@ -136,24 +169,7 @@ class TFTLCD : public Print {
 
   void write8(uint8_t d);
 
- private:
-  void drawCircleHelper(uint16_t x0, uint16_t y0,
-			uint16_t r, uint8_t corner,
-			uint16_t color);
-  void fillCircleHelper(uint16_t x0, uint16_t y0,
-			uint16_t r, uint8_t corner,
-			uint16_t delta, uint16_t color);
 
-  uint8_t read8(void);
-
-  uint8_t _cs, _cd, _reset, _wr, _rd;
-
-  uint8_t csport, cdport, wrport, rdport;
-  uint8_t cspin, cdpin, wrpin, rdpin;
-
-  uint16_t _width, _height;
-  uint8_t textsize;
-  uint16_t cursor_x, cursor_y;
-  uint16_t textcolor;
-  uint8_t rotation;
 };
+
+#endif

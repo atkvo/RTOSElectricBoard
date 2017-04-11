@@ -1,43 +1,51 @@
 #include "TFTLCD.h"
+#include "gpio.hpp"
+#include "utilities.h"
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdio.h>
 
-#define DATAPORT1 PORTD
-#define DATAPIN1  PIND
-#define DATADDR1  DDRD
+//#define DATAPORT1 PORTD
+//#define DATAPIN1  PIND
+//#define DATADDR1  DDRD
+//
+//#define DATAPORT2 PORTB
+//#define DATAPIN2  PINB
+//#define DATADDR2  DDRB
+//
+//#define DATA1_MASK 0xFC  // top 6 bits
+//#define DATA2_MASK 0x03  // bottom 2 bits
+//
+//#define MEGA_DATAPORT PORTA
+//#define MEGA_DATAPIN  PINA
+//#define MEGA_DATADDR  DDRA
 
-#define DATAPORT2 PORTB
-#define DATAPIN2  PINB
-#define DATADDR2  DDRB
 
-#define DATA1_MASK 0xFC  // top 6 bits
-#define DATA2_MASK 0x03  // bottom 2 bits
-
-#define MEGA_DATAPORT PORTA
-#define MEGA_DATAPIN  PINA
-#define MEGA_DATADDR  DDRA
+// All pins appear to be active low
 
 //#define CS_ACTIVE *portOutputRegister(csport) &= ~cspin;
 //#define CS_IDLE *portOutputRegister(csport) |= cspin;
 
-#define CS_ACTIVE *portOutputRegister(csport) &= ~cspin;
-#define CS_IDLE *portOutputRegister(csport) |= cspin;
+#define CS_ACTIVE   chipSelect.setLow();
+#define CS_IDLE     chipSelect.setHigh();
 
 //#define RD_IDLE *portOutputRegister(rdport) |= rdpin;
 //#define RD_ACTIVE *portOutputRegister(rdport) &= ~rdpin;
 
-#define RD_IDLE *portOutputRegister(rdport) |= rdpin;
-#define RD_ACTIVE *portOutputRegister(rdport) &= ~rdpin;
+#define RD_IDLE     readSelect.setHigh();
+#define RD_ACTIVE   readSelect.setLow();
 
 //#define WR_IDLE *portOutputRegister(wrport) |= wrpin;
 //#define WR_ACTIVE *portOutputRegister(wrport) &=~ wrpin;
 
-#define WR_IDLE *portOutputRegister(wrport) |= wrpin;
-#define WR_ACTIVE *portOutputRegister(wrport) &=~ wrpin;
+#define WR_IDLE     writeSelect.setHigh();
+#define WR_ACTIVE   writeSelect.setLow();
 
 //#define CD_DATA *portOutputRegister(cdport) |= cdpin;
 //#define CD_COMMAND *portOutputRegister(cdport) &= ~cdpin;
 
-#define CD_DATA *portOutputRegister(cdport) |= cdpin;
-#define CD_COMMAND *portOutputRegister(cdport) &= ~cdpin;
+#define CD_DATA     comm_data.setHigh();
+#define CD_COMMAND  comm_data.setLow();
 
 #include "glcdfont.c"
 //#include <avr/pgmspace.h>
@@ -78,7 +86,7 @@ void TFTLCD::setTextColor(uint16_t c) {
   textcolor = c;
 }
 
-size_t TFTLCD::write(uint8_t c) {
+void TFTLCD::write(uint8_t c) {
   if (c == '\n') {
     cursor_y += textsize*8;
     cursor_x = 0;
@@ -91,9 +99,9 @@ size_t TFTLCD::write(uint8_t c) {
 }
 
 void TFTLCD::pushColors(uint16_t *data, uint8_t len,
-			boolean first) {
+			bool first) {
   uint16_t color;
-  uint8_t  hi, lo;
+//  uint8_t  hi, lo;
 
   if(first == true) {
     CS_ACTIVE
@@ -123,7 +131,8 @@ void TFTLCD::drawChar(uint16_t x, uint16_t y, char c,
 		      uint16_t color, uint8_t size)
 {
   for (uint8_t i =0; i<5; i++ ) {
-    uint8_t line = pgm_read_byte(font+(c*5)+i);
+//      uint8_t line = pgm_read_byte(font+(c*5)+i);
+      uint8_t line = font[(c*5)+i];
     for (uint8_t j = 0; j<8; j++) {
       if (line & 0x1) {
 	if (size == 1) // default size
@@ -372,7 +381,7 @@ void TFTLCD::drawHorizontalLine(uint16_t x, uint16_t y,
 				uint16_t length, uint16_t color)
 {
   if (y >= _height) return;
-  drawFastLine(x,y,length,color,0);
+  drawFastLine(x,y,length,color,(uint8_t)0);
 }
 
 void TFTLCD::drawFastLine(uint16_t x, uint16_t y, uint16_t length, 
@@ -413,6 +422,10 @@ void TFTLCD::drawFastLine(uint16_t x, uint16_t y, uint16_t length,
     else 
       newentrymod = 0x1008;   // we want a 'horizontal line'1008
     break;
+  default:
+      newentrymod = 0x0000;
+      printf("error!");
+
   }
  
   writeRegister(TFTLCD_ENTRY_MOD, newentrymod);
@@ -530,7 +543,7 @@ void TFTLCD::drawPixel(uint16_t x, uint16_t y, uint16_t color)
   writeData(color);
 }
 
-static const uint16_t _regValues[] PROGMEM = {
+static const uint16_t _regValues[] = {
 TFTLCD_DRIV_OUT_CTRL, 0x0100,
 TFTLCD_DRIV_WAV_CTRL, 0x0700,
 TFTLCD_ENTRY_MOD,  0x1030,    
@@ -580,19 +593,27 @@ TFTLCD_DISP_CTRL1, 0x0133,
 };
 
 void TFTLCD::initDisplay(void) {
-  uint16_t a, d;
+  uint16_t addr, data;
 
   reset();
   
   for (uint8_t i = 0; i < sizeof(_regValues) / 4; i++) {
-    a = pgm_read_word(_regValues + i*2);
-    d = pgm_read_word(_regValues + i*2 + 1);
+    // only necessary if array was still stored in PROGMEM
+//    a = pgm_read_word(_regValues + i*2);
+//    d = pgm_read_word(_regValues + i*2 + 1);
+      addr = _regValues[i];
+      data = _regValues[i];
 
-    if (a == 0xFF) {
-      delay(d);
-    } else {
-      writeRegister(a, d);
-     }
+//    if (address == 0xFF) {
+//      delay(data);
+//    } else {
+//      writeRegister(addr, data);
+//     }
+      // 0xFF appears to be commented out in .h code and so the above statement is not necessary
+
+
+      writeRegister(addr, data);
+
   }
 }
 
@@ -644,42 +665,61 @@ void TFTLCD::setRotation(uint8_t x) {
 /********************************* low level pin initialization */
 
 TFTLCD::TFTLCD(uint8_t cs, uint8_t cd, uint8_t wr,
-	       uint8_t rd, uint8_t reset) {
-  _cs = cs;
-  _cd = cd;
-  _wr = wr;
-  _rd = rd;
-  _reset = reset;
+	       uint8_t rd, uint8_t reset) : resetSelect(P1_31), chipSelect(P1_30), comm_data(P1_29), writeSelect(P1_28), readSelect(P1_23)  {
+//  _cs = cs;
+//  _cd = cd;
+//  _wr = wr;
+//  _rd = rd;
+//  _reset = reset;
   
+  resetSelect.setHigh();
+  resetSelect.setAsOutput();
+
+  chipSelect.setHigh();
+  chipSelect.setAsOutput();
+
+  comm_data.setHigh();
+  comm_data.setAsOutput();
+
+  writeSelect.setHigh();
+  writeSelect.setAsOutput();
+
+  readSelect.setHigh();
+  readSelect.setAsOutput();
+
+
+
   rotation = 0;
   _width = TFTWIDTH;
   _height = TFTHEIGHT;
 
   // disable the LCD
-  digitalWrite(_cs, HIGH);
-  pinMode(_cs, OUTPUT);  
+//  digitalWrite(_cs, HIGH);
+//  pinMode(_cs, OUTPUT);
+//
+//  digitalWrite(_cd, HIGH);
+//  pinMode(_cd, OUTPUT);
+//
+//  digitalWrite(_wr, HIGH);
+//  pinMode(_wr, OUTPUT);
+//
+//  digitalWrite(_rd, HIGH);
+//  pinMode(_rd, OUTPUT);
+//
+//  digitalWrite(_reset, HIGH);
+//  pinMode(_reset, OUTPUT);
   
-  digitalWrite(_cd, HIGH);
-  pinMode(_cd, OUTPUT);  
   
-  digitalWrite(_wr, HIGH);
-  pinMode(_wr, OUTPUT);  
-  
-  digitalWrite(_rd, HIGH);
-  pinMode(_rd, OUTPUT);  
 
-  digitalWrite(_reset, HIGH); 
-  pinMode(_reset, OUTPUT); 
-
-  csport = digitalPinToPort(_cs);
-  cdport = digitalPinToPort(_cd);
-  wrport = digitalPinToPort(_wr);
-  rdport = digitalPinToPort(_rd);
-
-  cspin = digitalPinToBitMask(_cs);
-  cdpin = digitalPinToBitMask(_cd);
-  wrpin = digitalPinToBitMask(_wr);
-  rdpin = digitalPinToBitMask(_rd);
+//  csport = digitalPinToPort(_cs);
+//  cdport = digitalPinToPort(_cd);
+//  wrport = digitalPinToPort(_wr);
+//  rdport = digitalPinToPort(_rd);
+//
+//  cspin = digitalPinToBitMask(_cs);
+//  cdpin = digitalPinToBitMask(_cd);
+//  wrpin = digitalPinToBitMask(_wr);
+//  rdpin = digitalPinToBitMask(_rd);
 
   cursor_y = cursor_x = 0;
   textsize = 1;
@@ -690,12 +730,17 @@ TFTLCD::TFTLCD(uint8_t cs, uint8_t cd, uint8_t wr,
 /********************************** low level pin interface */
 
 void TFTLCD::reset(void) {
-  if (_reset)
-    digitalWrite(_reset, LOW);
-  delay(2); 
-  if (_reset)
-    digitalWrite(_reset, HIGH);
-
+// why is this testing to see if reset pin number is positive?
+//  if (_reset)
+//    digitalWrite(_reset, LOW);
+//  delay(2);
+//  if (_reset)
+//    digitalWrite(_reset, HIGH);
+// why is this testing to see if reset pin number is positive?
+// seems like a 0 pin number is not unreasonable to expect
+    resetSelect.setLow();
+    delay_ms(2);
+    resetSelect.setHigh();
   // resync
   writeData(0);
   writeData(0);
@@ -704,111 +749,128 @@ void TFTLCD::reset(void) {
 }
 
 inline void TFTLCD::setWriteDir(void) {
-#if defined(__AVR_ATmega168__) || defined(__AVR_ATmega328P__) || defined (__AVR_ATmega328) || (__AVR_ATmega8__)
-  DATADDR2 |= DATA2_MASK;
-  DATADDR1 |= DATA1_MASK;
-#elif defined(__AVR_ATmega1281__) || defined(__AVR_ATmega2561__) || defined(__AVR_ATmega2560__) || defined(__AVR_ATmega1280__) 
+//#if defined(__AVR_ATmega168__) || defined(__AVR_ATmega328P__) || defined (__AVR_ATmega328) || (__AVR_ATmega8__)
+//  DATADDR2 |= DATA2_MASK;
+//  DATADDR1 |= DATA1_MASK;
+//#elif defined(__AVR_ATmega1281__) || defined(__AVR_ATmega2561__) || defined(__AVR_ATmega2560__) || defined(__AVR_ATmega1280__)
+//
+//  #ifdef USE_ADAFRUIT_SHIELD_PINOUT
+//  DDRH |= 0x78;
+//  DDRB |= 0xB0;
+//  DDRG |= _BV(5);
+//  #else
+//  MEGA_DATADDR = 0xFF;
+//  #endif
+//
+//#else
+//  #warning "No pins defined!"
+//#endif
 
-  #ifdef USE_ADAFRUIT_SHIELD_PINOUT
-  DDRH |= 0x78;
-  DDRB |= 0xB0;
-  DDRG |= _BV(5);
-  #else
-  MEGA_DATADDR = 0xFF;
-  #endif
-#else
-  #error "No pins defined!"
-#endif
+  LPC_GPIO2->FIODIR |= 0xFF; // sets pins 0-7 on Port 2 to output
+
+
 }
 
 inline void TFTLCD::setReadDir(void) {
-#if defined(__AVR_ATmega168__) || defined(__AVR_ATmega328P__) || defined (__AVR_ATmega328) || (__AVR_ATmega8__)
-  DATADDR2 &= ~DATA2_MASK;
-  DATADDR1 &= ~DATA1_MASK;
-#elif defined(__AVR_ATmega1281__) || defined(__AVR_ATmega2561__) || defined(__AVR_ATmega2560__) || defined(__AVR_ATmega1280__) 
+//#if defined(__AVR_ATmega168__) || defined(__AVR_ATmega328P__) || defined (__AVR_ATmega328) || (__AVR_ATmega8__)
+//  DATADDR2 &= ~DATA2_MASK;
+//  DATADDR1 &= ~DATA1_MASK;
+//#elif defined(__AVR_ATmega1281__) || defined(__AVR_ATmega2561__) || defined(__AVR_ATmega2560__) || defined(__AVR_ATmega1280__)
+//
+//  #ifdef USE_ADAFRUIT_SHIELD_PINOUT
+//  DDRH &= ~0x78;
+//  DDRB &= ~0xB0;
+//  DDRG &= ~_BV(5);
+//  #else
+//  MEGA_DATADDR = 0;
+//  #endif
+//
+//#else
+//  #warning "No pins defined!"
+//#endif
 
-  #ifdef USE_ADAFRUIT_SHIELD_PINOUT
-  DDRH &= ~0x78;
-  DDRB &= ~0xB0;
-  DDRG &= ~_BV(5);
-  #else
-  MEGA_DATADDR = 0;
-  #endif
-#else
-  #error "No pins defined!"
-#endif
+  LPC_GPIO2->FIODIR &= ~(0xFF); // sets pins 0-7 on Port 2 to input
+
 }
 
 inline void TFTLCD::write8(uint8_t d) {
-#if defined(__AVR_ATmega168__) || defined(__AVR_ATmega328P__) || defined (__AVR_ATmega328) || (__AVR_ATmega8__)
+//#if defined(__AVR_ATmega168__) || defined(__AVR_ATmega328P__) || defined (__AVR_ATmega328) || (__AVR_ATmega8__)
+//
+//  DATAPORT2 = (DATAPORT2 & DATA1_MASK) |
+//    (d & DATA2_MASK);
+//  DATAPORT1 = (DATAPORT1 & DATA2_MASK) |
+//    (d & DATA1_MASK); // top 6 bits
+//
+//#elif defined(__AVR_ATmega1281__) || defined(__AVR_ATmega2561__) || defined(__AVR_ATmega2560__) || defined(__AVR_ATmega1280__)
+//
+//
+//#ifdef USE_ADAFRUIT_SHIELD_PINOUT
+//
+//  // bit 6/7 (PH3 & 4)
+//  // first two bits 0 & 1 (PH5 & 6)
+//  PORTH &= ~(0x78);
+//  PORTH |= ((d&0xC0) >> 3) | ((d&0x3) << 5);
+//
+//  // bits 2 & 3 (PB4 & PB5)
+//  // bit 5 (PB7)
+//  PORTB &= ~(0xB0);
+//  PORTB |= ((d & 0x2C) << 2);
+//
+//  // bit 4  (PG5)
+//  if (d & _BV(4))
+//    PORTG |= _BV(5);
+//  else
+//    PORTG &= ~_BV(5);
+//
+//  #else
+//     MEGA_DATAPORT = d;
+//  #endif
+//
+//#else
+//  #warning "No pins defined!"
+//#endif
 
-  DATAPORT2 = (DATAPORT2 & DATA1_MASK) | 
-    (d & DATA2_MASK);
-  DATAPORT1 = (DATAPORT1 & DATA2_MASK) | 
-    (d & DATA1_MASK); // top 6 bits
-  
-#elif defined(__AVR_ATmega1281__) || defined(__AVR_ATmega2561__) || defined(__AVR_ATmega2560__) || defined(__AVR_ATmega1280__) 
+    LPC_GPIO2->FIOPIN &= ~(0xFF);
+    LPC_GPIO2->FIOPIN |= d;
 
-
-#ifdef USE_ADAFRUIT_SHIELD_PINOUT
-
-  // bit 6/7 (PH3 & 4)
-  // first two bits 0 & 1 (PH5 & 6)
-  PORTH &= ~(0x78);
-  PORTH |= ((d&0xC0) >> 3) | ((d&0x3) << 5);
-
-  // bits 2 & 3 (PB4 & PB5)
-  // bit 5 (PB7)
-  PORTB &= ~(0xB0); 
-  PORTB |= ((d & 0x2C) << 2);
-
-  // bit 4  (PG5)
-  if (d & _BV(4))
-    PORTG |= _BV(5);
-  else
-    PORTG &= ~_BV(5);
-
-  #else
-     MEGA_DATAPORT = d;  
-  #endif
-
-#else
-  #error "No pins defined!"
-#endif
 }
 
 inline uint8_t TFTLCD::read8(void) {
  uint8_t d;
-#if defined(__AVR_ATmega168__) || defined(__AVR_ATmega328P__) || defined (__AVR_ATmega328) || (__AVR_ATmega8__)
+//#if defined(__AVR_ATmega168__) || defined(__AVR_ATmega328P__) || defined (__AVR_ATmega328) || (__AVR_ATmega8__)
+//
+// d = DATAPIN1 & DATA1_MASK;
+// d |= DATAPIN2 & DATA2_MASK;
+//
+//#elif defined(__AVR_ATmega1281__) || defined(__AVR_ATmega2561__) || defined(__AVR_ATmega2560__)  || defined(__AVR_ATmega1280__)
+//
+//#ifdef USE_ADAFRUIT_SHIELD_PINOUT
+//
+//  // bit 6/7 (PH3 & 4)
+//  // first two bits 0 & 1 (PH5 & 6)
+// d = (PINH & 0x60) >> 5;
+// d |= (PINH & 0x18) << 3;
+//
+//  // bits 2 & 3 & 5 (PB4 & PB5, PB7)
+// d |= (PINB & 0xB0) >> 2;
+//
+//  // bit 4  (PG5)
+//  if (PING & _BV(5))
+//    d |= _BV(4);
+//
+//#else
+// d = MEGA_DATAPIN;
+//#endif
+//
+//#else
+//
+//  #warning "No pins defined!"
+//
+//#endif
 
- d = DATAPIN1 & DATA1_MASK; 
- d |= DATAPIN2 & DATA2_MASK; 
-
-#elif defined(__AVR_ATmega1281__) || defined(__AVR_ATmega2561__) || defined(__AVR_ATmega2560__)  || defined(__AVR_ATmega1280__) 
-
-#ifdef USE_ADAFRUIT_SHIELD_PINOUT
-
-  // bit 6/7 (PH3 & 4)
-  // first two bits 0 & 1 (PH5 & 6)
- d = (PINH & 0x60) >> 5;
- d |= (PINH & 0x18) << 3;
-
-  // bits 2 & 3 & 5 (PB4 & PB5, PB7)
- d |= (PINB & 0xB0) >> 2;
-
-  // bit 4  (PG5)
-  if (PING & _BV(5))
-    d |= _BV(4);
-
-#else
- d = MEGA_DATAPIN;  
-#endif
-
-#else
-
-  #error "No pins defined!"
-
-#endif
+ // this should automatically truncate all values for pins above 7
+ // which is what we want since we are only interested in 0-7 on P2
+ d = LPC_GPIO2->FIOPIN;
 
  return d;
 }
@@ -860,12 +922,12 @@ void TFTLCD::writeCommand(uint16_t cmd) {
   WR_IDLE
 
   setWriteDir();
-  write8(cmd >> 8);
+  write8((uint8_t)(cmd >> 8));
 
   WR_ACTIVE
   WR_IDLE
 
-  write8(cmd);
+  write8((uint8_t)cmd);
 
   WR_ACTIVE
   WR_IDLE
@@ -884,14 +946,17 @@ uint16_t TFTLCD::readData() {
 
   RD_ACTIVE
 
-  delayMicroseconds(10);
+  // delayMicroseconds(10);
+  delay_us(10);
   d = read8();
   d <<= 8;
 
   RD_IDLE
   RD_ACTIVE
 
-  delayMicroseconds(10);
+  //delayMicroseconds(10);
+  delay_us(10);
+
   d |= read8();
 
   RD_IDLE  

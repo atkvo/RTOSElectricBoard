@@ -27,10 +27,9 @@
 
 // TFTLCD tft(LCD_CS, LCD_CD, LCD_WR, LCD_RD, LCD_RESET);
 // does not matter since ports are not defined this way on SJONE board
-TFTLCD tft(0, 0, 0, 0, 0);
 
 
-LCDcontroller::LCDcontroller(uint8_t priority) : scheduler_task("LCD", 2048, priority, NULL) {
+LCDcontroller::LCDcontroller(uint8_t priority) : scheduler_task("LCD", 2048, priority, NULL), tft(0, 0, 0, 0, 0) {
     setRunDuration(33); // 30 frames per second refresh
 
 }
@@ -66,32 +65,32 @@ bool LCDcontroller::run(void * p) {
 
 
 
-void testFillRoundRect() {
+void LCDcontroller::testFillRoundRect() {
   tft.fillScreen(BLACK);
 
   for (uint16_t x=tft.width(); x > 20 ; x-=6) {
-    tft.fillRoundRect(tft.width()/2 -x/2, tft.height()/2 -x/2 , x, x, x/8,  tft.Color565(0, x, 0));
+    tft.fillRoundRect(tft.width()/2 -x/2, tft.height()/2 -x/2 , x, x, x/8,  tft.Color565(0, (uint8_t)x, 0));
  }
 }
 
-void testRoundRect() {
+void LCDcontroller::testRoundRect() {
   tft.fillScreen(BLACK);
 
   for (uint16_t x=0; x < tft.width(); x+=6) {
-    tft.drawRoundRect(tft.width()/2 -x/2, tft.height()/2 -x/2 , x, x, x/8, tft.Color565(x, 0, 0));
+    tft.drawRoundRect(tft.width()/2 -x/2, tft.height()/2 -x/2 , x, x, x/8, tft.Color565((uint8_t)x, 0, 0));
  }
 }
 
-void testtriangles() {
+void LCDcontroller::testtriangles() {
   tft.fillScreen(BLACK);
   for (uint16_t i=0; i<tft.width()/2; i+=5) {
     tft.drawTriangle(tft.width()/2, tft.height()/2-i,
                      tft.width()/2-i, tft.height()/2+i,
-                     tft.width()/2+i, tft.height()/2+i, tft.Color565(0, 0, i));
+                     tft.width()/2+i, tft.height()/2+i, tft.Color565(0, 0, (uint8_t)i));
   }
 }
 
-void testfilltriangles() {
+void LCDcontroller::testfilltriangles() {
   tft.fillScreen(BLACK);
 
   for (uint16_t i=tft.width()/2; i>10; i-=5) {
@@ -104,7 +103,7 @@ void testfilltriangles() {
                      tft.width()/2+i, tft.height()/2+i, tft.Color565(i, i, 0));
   }
 }
-void testtext(uint16_t color) {
+void LCDcontroller::testtext(uint16_t color) {
   tft.fillScreen(BLACK);
   tft.setCursor(0, 20);
   tft.setTextColor(color);
@@ -116,7 +115,7 @@ void testtext(uint16_t color) {
   //tft.println(0xDEADBEEF, HEX);
 }
 
-void testfillcircles(uint8_t radius, uint16_t color) {
+void LCDcontroller::testfillcircles(uint8_t radius, uint16_t color) {
   tft.fillScreen(BLACK);
   for (uint16_t x=radius; x < tft.width(); x+=radius*2) {
     for (uint16_t y=radius; y < tft.height(); y+=radius*2) {
@@ -125,7 +124,7 @@ void testfillcircles(uint8_t radius, uint16_t color) {
   }
 }
 
-void testdrawcircles(uint8_t radius, uint16_t color) {
+void LCDcontroller::testdrawcircles(uint8_t radius, uint16_t color) {
   for (uint16_t x=0; x < tft.width()+radius; x+=radius*2) {
     for (uint16_t y=0; y < tft.height()+radius; y+=radius*2) {
       tft.drawCircle(x, y, radius, color);
@@ -134,7 +133,7 @@ void testdrawcircles(uint8_t radius, uint16_t color) {
 }
 
 
-void testfillrects(uint16_t color1, uint16_t color2) {
+void LCDcontroller::testfillrects(uint16_t color1, uint16_t color2) {
  tft.fillScreen(BLACK);
  for (uint16_t x=tft.width()-1; x > 6; x-=6) {
    //Serial.println(x, DEC);
@@ -143,14 +142,14 @@ void testfillrects(uint16_t color1, uint16_t color2) {
  }
 }
 
-void testdrawrects(uint16_t color) {
+void LCDcontroller::testdrawrects(uint16_t color) {
  tft.fillScreen(BLACK);
  for (uint16_t x=0; x < tft.width(); x+=6) {
    tft.drawRect(tft.width()/2 -x/2, tft.height()/2 -x/2 , x, x, color);
  }
 }
 
-void testfastlines(uint16_t color1, uint16_t color2) {
+void LCDcontroller::testfastlines(uint16_t color1, uint16_t color2) {
    tft.fillScreen(BLACK);
    for (uint16_t y=0; y < tft.height(); y+=5) {
      tft.drawHorizontalLine(0, y, tft.width(), color1);
@@ -161,7 +160,7 @@ void testfastlines(uint16_t color1, uint16_t color2) {
 
 }
 
-void testlines(uint16_t color) {
+void LCDcontroller::testlines(uint16_t color) {
    tft.fillScreen(BLACK);
    for (uint16_t x=0; x < tft.width(); x+=6) {
      tft.drawLine(0, 0, x, tft.height()-1, color);
@@ -196,7 +195,7 @@ void testlines(uint16_t color) {
 }
 
 
-void testBars() {
+void LCDcontroller::testBars() {
   uint16_t i,j;
   for(i=0; i < tft.height(); i++)
   {
