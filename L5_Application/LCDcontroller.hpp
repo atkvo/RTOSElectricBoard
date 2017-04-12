@@ -15,6 +15,7 @@ class LCDcontroller : public scheduler_task {
 private:
     TFTLCD tft;
 
+
     void testFillRoundRect();
     void testRoundRect();
     void testtriangles();
@@ -27,10 +28,21 @@ private:
     void testfastlines(uint16_t color1, uint16_t color2);
     void testlines(uint16_t color);
     void testBars();
+    GPIO D0;
+    GPIO D1;
+    GPIO D2;
+    GPIO D3;
+    GPIO D4;
+    GPIO D5;
+    GPIO D6;
+    GPIO D7;
+
 public:
     LCDcontroller(uint8_t priority);
     bool init(void);
     bool run(void * p);
+
+
 };
 
 

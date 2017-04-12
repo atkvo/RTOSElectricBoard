@@ -29,6 +29,9 @@
 #include "ElectricBoardReceiver.hpp"
 #include "LCDcontroller.hpp"
 
+//#define BOARD_CONTROLLER
+#define REMOTE_CONTROLLER
+
 /**
  * The main() creates tasks or "threads".  See the documentation of scheduler_task class at scheduler_task.hpp
  * for details.  There is a very simple example towards the beginning of this class's declaration.
@@ -64,10 +67,14 @@ int main(void)
     // scheduler_add_task(new SemaphoreTask(PRIORITY_HIGH));
     // scheduler_add_task(new UART2Task(PRIORITY_MEDIUM));
     // scheduler_add_task(new led_switch_task(PRIORITY_LOW, false));
+#ifdef BOARD_CONTROLLER
     scheduler_add_task(new ElectricBoardControl(PRIORITY_LOW));
     scheduler_add_task(new ElectricBoardReceiver(PRIORITY_LOW));
-
+#endif
     // scheduler_add_task(new FlashMemoryTask(PRIORITY_LOW));
+#ifdef REMOTE_CONTROLLER
+    scheduler_add_task(new LCDcontroller(PRIORITY_MEDIUM));
+#endif
 
     /* Change "#if 0" to "#if 1" to run period tasks; @see period_callbacks.cpp */
     #if 0
@@ -108,10 +115,6 @@ int main(void)
         scheduler_add_task(new queue_rx());
     #endif
 
-    // Activate the LCD controller and drivers
-#if 1
-        scheduler_add_task(new LCDcontroller(PRIORITY_MEDIUM));
-#endif
     /**
      * Another example of shared handles and producer/consumer using a queue.
      * In this example, producer will produce as fast as the consumer can consume.

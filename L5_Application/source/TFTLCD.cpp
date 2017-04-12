@@ -52,6 +52,72 @@
 //#include "pins_arduino.h"
 //#include "wiring_private.h"
 
+  void TFTLCD::testPinsLow() {
+      resetSelect.setLow();
+      CS_ACTIVE
+      RD_ACTIVE
+      WR_ACTIVE
+      CD_COMMAND
+  }
+
+
+  void TFTLCD::testPinsHigh() {
+      resetSelect.setHigh();
+      CS_IDLE
+      RD_IDLE
+      WR_IDLE
+      CD_DATA
+  }
+
+  // resetSelect(P1_31), chipSelect(P1_30), comm_data(P1_29), writeSelect(P1_28), readSelect(P1_23)
+  void TFTLCD::testControlSequence() {
+      delay_ms(500);
+
+      resetSelect.setHigh();
+      delay_ms(500);
+
+      resetSelect.setLow();
+      CS_IDLE
+      delay_ms(500);
+
+      CS_ACTIVE
+      CD_DATA
+      delay_ms(500);
+
+      CD_COMMAND
+      WR_IDLE
+      delay_ms(500);
+
+      WR_ACTIVE
+      RD_IDLE
+      delay_ms(500);
+
+      RD_ACTIVE
+      delay_ms(500);
+  }
+
+  void TFTLCD::testDataSequence() {
+      write8(0);
+      delay_ms(500);
+      write8(1);
+      delay_ms(500);
+      write8(2);
+      delay_ms(500);
+      write8(4);
+      delay_ms(500);
+      write8(8);
+      delay_ms(500);
+      write8(16);
+      delay_ms(500);
+      write8(32);
+      delay_ms(500);
+      write8(64);
+      delay_ms(500);
+      write8(128);
+      delay_ms(500);
+      write8(0);
+      delay_ms(500);
+  }
 
 void TFTLCD::goHome(void) {
   goTo(0,0);
@@ -139,7 +205,7 @@ void TFTLCD::drawChar(uint16_t x, uint16_t y, char c,
 	  drawPixel(x+i, y+j, color);
 	else {  // big size
 	  fillRect(x+i*size, y+j*size, size, size, color);
-	} 
+	}
       }
       line >>= 1;
     }
@@ -344,7 +410,7 @@ void TFTLCD::drawCircleHelper(uint16_t x0, uint16_t y0,
     if (cornername & 0x4) {
       drawPixel(x0 + x, y0 + y, color);
       drawPixel(x0 + y, y0 + x, color);
-    } 
+    }
     if (cornername & 0x2) {
       drawPixel(x0 + x, y0 - y, color);
       drawPixel(x0 + y, y0 - x, color);
@@ -543,54 +609,116 @@ void TFTLCD::drawPixel(uint16_t x, uint16_t y, uint16_t color)
   writeData(color);
 }
 
-static const uint16_t _regValues[] = {
-TFTLCD_DRIV_OUT_CTRL, 0x0100,
-TFTLCD_DRIV_WAV_CTRL, 0x0700,
-TFTLCD_ENTRY_MOD,  0x1030,    
-TFTLCD_DISP_CTRL2, 0x0302,    
-TFTLCD_DISP_CTRL3, 0x0000,   
-TFTLCD_DISP_CTRL4, 0x0008,
+#define   DELAY  0xaf  // unused ST7781 command
 
-//*******POWER CONTROL REGISTER INITIAL*******//    
-TFTLCD_POW_CTRL1, 0x0790,    
-TFTLCD_POW_CTRL2, 0x0005,    
-TFTLCD_POW_CTRL3, 0x0000,   
-TFTLCD_POW_CTRL4, 0x0000,    
+static const uint16_t _regValues[] =
+{
+     0x01, 0x0100 ,
+     0x02, 0x0700 ,
+     0x03, 0x1030 ,
+     0x04, 0x0000 ,
+     0x08, 0x0302 ,
+     0x0A, 0x0000 ,
+     0x0C, 0x0000 ,
+     0x0D, 0x0000 ,
+     0x0F, 0x0000 ,
 
- //delayms(50, 
-//********POWER SUPPPLY STARTUP 1 SETTING*******//    
-TFTLCD_POW_CTRL1, 0x12B0,    
-// delayms(50,  
- TFTLCD_POW_CTRL2, 0x0007,    
- //delayms(50,  
-//********POWER SUPPLY STARTUP 2 SETTING******//    
-TFTLCD_POW_CTRL3, 0x008C,    
-TFTLCD_POW_CTRL4, 0x1700,    
-TFTLCD_VCOMH_CTRL, 0x0022,    
-// delayms(50,   
-//******GAMMA CLUSTER SETTING******//    
-TFTLCD_GAMMA_CTRL1, 0x0000,    
-TFTLCD_GAMMA_CTRL2, 0x0505,    
-TFTLCD_GAMMA_CTRL3, 0x0205,    
-TFTLCD_GAMMA_CTRL4, 0x0206,    
-TFTLCD_GAMMA_CTRL5, 0x0408,    
-TFTLCD_GAMMA_CTRL6, 0x0000,    
-TFTLCD_GAMMA_CTRL7, 0x0504,
-TFTLCD_GAMMA_CTRL8, 0x0206,    
-TFTLCD_GAMMA_CTRL9, 0x0206,    
-TFTLCD_GAMMA_CTRL10, 0x0408,    
-// -----------DISPLAY WINDOWS 240*320-------------//    
-TFTLCD_HOR_START_AD, 0x0000,
-TFTLCD_HOR_END_AD, 0x00EF,   
-TFTLCD_VER_START_AD, 0x0000,   
-TFTLCD_VER_END_AD, 0x013F,   
-//-----FRAME RATE SETTING-------//    
-TFTLCD_GATE_SCAN_CTRL1, 0xA700,   
-TFTLCD_GATE_SCAN_CTRL2, 0x0001,   
-TFTLCD_PANEL_IF_CTRL1, 0x0033, //RTNI setting
-//-------DISPLAY ON------//    
-TFTLCD_DISP_CTRL1, 0x0133,
+     DELAY,  100  ,
+
+     0x30, 0x0000 ,
+     0x31, 0x0405 ,
+     0x32, 0x0203 ,
+     0x35, 0x0004 ,
+     0x36, 0x0B07 ,
+     0x37, 0x0000 ,
+     0x38, 0x0405 ,
+     0x39, 0x0203 ,
+     0x3c, 0x0004 ,
+     0x3d, 0x0B07 ,
+     0x20, 0x0000 ,
+     0x21, 0x0000 ,
+     0x50, 0x0000 ,
+     0x51, 0x00ef ,
+     0x52, 0x0000 ,
+     0x53, 0x013f ,
+
+     DELAY,  100  ,
+
+     0x60, 0xa700 ,
+     0x61, 0x0001 ,
+     0x90, 0x003A ,
+     0x95, 0x021E ,
+     0x80, 0x0000 ,
+     0x81, 0x0000 ,
+     0x82, 0x0000 ,
+     0x83, 0x0000 ,
+     0x84, 0x0000 ,
+     0x85, 0x0000 ,
+     0xFF, 0x0001 ,
+     0xB0, 0x140D ,
+     0xFF, 0x0000 ,
+
+     DELAY,  100  ,
+
+     0x07, 0x0133 ,
+
+     DELAY,  50   ,
+
+     0x10, 0x14e0 ,
+
+     DELAY,  100  ,
+
+     0x07, 0x0133 ,
 };
+
+//static const uint16_t _regValues[] = {
+//TFTLCD_DRIV_OUT_CTRL, 0x0100,
+//TFTLCD_DRIV_WAV_CTRL, 0x0700,
+//TFTLCD_ENTRY_MOD,  0x1030,
+//TFTLCD_DISP_CTRL2, 0x0302,
+//TFTLCD_DISP_CTRL3, 0x0000,
+//TFTLCD_DISP_CTRL4, 0x0008,
+//
+////*******POWER CONTROL REGISTER INITIAL*******//
+//TFTLCD_POW_CTRL1, 0x0790,
+//TFTLCD_POW_CTRL2, 0x0005,
+//TFTLCD_POW_CTRL3, 0x0000,
+//TFTLCD_POW_CTRL4, 0x0000,
+//
+// //delayms(50,
+////********POWER SUPPPLY STARTUP 1 SETTING*******//
+//TFTLCD_POW_CTRL1, 0x12B0,
+//// delayms(50,
+// TFTLCD_POW_CTRL2, 0x0007,
+// //delayms(50,
+////********POWER SUPPLY STARTUP 2 SETTING******//
+//TFTLCD_POW_CTRL3, 0x008C,
+//TFTLCD_POW_CTRL4, 0x1700,
+//TFTLCD_VCOMH_CTRL, 0x0022,
+//// delayms(50,
+////******GAMMA CLUSTER SETTING******//
+//TFTLCD_GAMMA_CTRL1, 0x0000,
+//TFTLCD_GAMMA_CTRL2, 0x0505,
+//TFTLCD_GAMMA_CTRL3, 0x0205,
+//TFTLCD_GAMMA_CTRL4, 0x0206,
+//TFTLCD_GAMMA_CTRL5, 0x0408,
+//TFTLCD_GAMMA_CTRL6, 0x0000,
+//TFTLCD_GAMMA_CTRL7, 0x0504,
+//TFTLCD_GAMMA_CTRL8, 0x0206,
+//TFTLCD_GAMMA_CTRL9, 0x0206,
+//TFTLCD_GAMMA_CTRL10, 0x0408,
+//// -----------DISPLAY WINDOWS 240*320-------------//
+//TFTLCD_HOR_START_AD, 0x0000,
+//TFTLCD_HOR_END_AD, 0x00EF,
+//TFTLCD_VER_START_AD, 0x0000,
+//TFTLCD_VER_END_AD, 0x013F,
+////-----FRAME RATE SETTING-------//
+//TFTLCD_GATE_SCAN_CTRL1, 0xA700,
+//TFTLCD_GATE_SCAN_CTRL2, 0x0001,
+//TFTLCD_PANEL_IF_CTRL1, 0x0033, //RTNI setting
+////-------DISPLAY ON------//
+//TFTLCD_DISP_CTRL1, 0x0133,
+//};
 
 void TFTLCD::initDisplay(void) {
   uint16_t addr, data;
@@ -602,17 +730,19 @@ void TFTLCD::initDisplay(void) {
 //    a = pgm_read_word(_regValues + i*2);
 //    d = pgm_read_word(_regValues + i*2 + 1);
       addr = _regValues[i];
-      data = _regValues[i];
+      data = _regValues[i+1];
 
 //    if (address == 0xFF) {
 //      delay(data);
 //    } else {
 //      writeRegister(addr, data);
 //     }
-      // 0xFF appears to be commented out in .h code and so the above statement is not necessary
+      if(addr == DELAY) {
+          delay_ms(data);
+      } else {
+          writeRegister(addr, data);
+      }
 
-
-      writeRegister(addr, data);
 
   }
 }
@@ -665,12 +795,12 @@ void TFTLCD::setRotation(uint8_t x) {
 /********************************* low level pin initialization */
 
 TFTLCD::TFTLCD(uint8_t cs, uint8_t cd, uint8_t wr,
-	       uint8_t rd, uint8_t reset) : resetSelect(P1_31), chipSelect(P1_30), comm_data(P1_29), writeSelect(P1_28), readSelect(P1_23)  {
+	       uint8_t rd, uint8_t rst) : resetSelect(P1_31), chipSelect(P1_30), comm_data(P1_29), writeSelect(P1_28), readSelect(P1_23)  {
 //  _cs = cs;
 //  _cd = cd;
 //  _wr = wr;
 //  _rd = rd;
-//  _reset = reset;
+//  _reset = rst;
   
   resetSelect.setHigh();
   resetSelect.setAsOutput();
@@ -693,6 +823,12 @@ TFTLCD::TFTLCD(uint8_t cs, uint8_t cd, uint8_t wr,
   _width = TFTWIDTH;
   _height = TFTHEIGHT;
 
+  // configure LCD data bus GPIO pins for output on P2.0 to P2.7
+  LPC_PINCON->PINSEL4 &= ~(0xFFFF);
+  LPC_PINCON->PINMODE4 &= ~(0xFFFF);
+
+//  LPC_PINCON->PINSEL0 &= ~(0x04);
+//  LPC_PINCON->PINMODE0 &= ~(0x04);
   // disable the LCD
 //  digitalWrite(_cs, HIGH);
 //  pinMode(_cs, OUTPUT);
@@ -748,25 +884,14 @@ void TFTLCD::reset(void) {
   writeData(0);
 }
 
-inline void TFTLCD::setWriteDir(void) {
+ void TFTLCD::setWriteDir(void) {
 //#if defined(__AVR_ATmega168__) || defined(__AVR_ATmega328P__) || defined (__AVR_ATmega328) || (__AVR_ATmega8__)
 //  DATADDR2 |= DATA2_MASK;
 //  DATADDR1 |= DATA1_MASK;
-//#elif defined(__AVR_ATmega1281__) || defined(__AVR_ATmega2561__) || defined(__AVR_ATmega2560__) || defined(__AVR_ATmega1280__)
-//
-//  #ifdef USE_ADAFRUIT_SHIELD_PINOUT
-//  DDRH |= 0x78;
-//  DDRB |= 0xB0;
-//  DDRG |= _BV(5);
-//  #else
-//  MEGA_DATADDR = 0xFF;
-//  #endif
-//
-//#else
-//  #warning "No pins defined!"
 //#endif
 
   LPC_GPIO2->FIODIR |= 0xFF; // sets pins 0-7 on Port 2 to output
+  LPC_GPIO0->FIODIR |= 0x04; // sets pins 0-1 on Port 0 to output
 
 
 }
@@ -775,25 +900,13 @@ inline void TFTLCD::setReadDir(void) {
 //#if defined(__AVR_ATmega168__) || defined(__AVR_ATmega328P__) || defined (__AVR_ATmega328) || (__AVR_ATmega8__)
 //  DATADDR2 &= ~DATA2_MASK;
 //  DATADDR1 &= ~DATA1_MASK;
-//#elif defined(__AVR_ATmega1281__) || defined(__AVR_ATmega2561__) || defined(__AVR_ATmega2560__) || defined(__AVR_ATmega1280__)
-//
-//  #ifdef USE_ADAFRUIT_SHIELD_PINOUT
-//  DDRH &= ~0x78;
-//  DDRB &= ~0xB0;
-//  DDRG &= ~_BV(5);
-//  #else
-//  MEGA_DATADDR = 0;
-//  #endif
-//
-//#else
-//  #warning "No pins defined!"
 //#endif
 
   LPC_GPIO2->FIODIR &= ~(0xFF); // sets pins 0-7 on Port 2 to input
 
 }
 
-inline void TFTLCD::write8(uint8_t d) {
+ void TFTLCD::write8(uint8_t d) {
 //#if defined(__AVR_ATmega168__) || defined(__AVR_ATmega328P__) || defined (__AVR_ATmega328) || (__AVR_ATmega8__)
 //
 //  DATAPORT2 = (DATAPORT2 & DATA1_MASK) |
@@ -801,37 +914,17 @@ inline void TFTLCD::write8(uint8_t d) {
 //  DATAPORT1 = (DATAPORT1 & DATA2_MASK) |
 //    (d & DATA1_MASK); // top 6 bits
 //
-//#elif defined(__AVR_ATmega1281__) || defined(__AVR_ATmega2561__) || defined(__AVR_ATmega2560__) || defined(__AVR_ATmega1280__)
-//
-//
-//#ifdef USE_ADAFRUIT_SHIELD_PINOUT
-//
-//  // bit 6/7 (PH3 & 4)
-//  // first two bits 0 & 1 (PH5 & 6)
-//  PORTH &= ~(0x78);
-//  PORTH |= ((d&0xC0) >> 3) | ((d&0x3) << 5);
-//
-//  // bits 2 & 3 (PB4 & PB5)
-//  // bit 5 (PB7)
-//  PORTB &= ~(0xB0);
-//  PORTB |= ((d & 0x2C) << 2);
-//
-//  // bit 4  (PG5)
-//  if (d & _BV(4))
-//    PORTG |= _BV(5);
-//  else
-//    PORTG &= ~_BV(5);
-//
-//  #else
-//     MEGA_DATAPORT = d;
-//  #endif
-//
-//#else
-//  #warning "No pins defined!"
-//#endif
+    //#endif
 
-    LPC_GPIO2->FIOPIN &= ~(0xFF);
-    LPC_GPIO2->FIOPIN |= d;
+//    LPC_GPIO2->FIOPIN &= ~(0xFF);
+//    LPC_GPIO2->FIOPIN |= d;
+    LPC_GPIO2->FIOCLR = 0xFF;
+    LPC_GPIO2->FIOSET = d;
+
+//    LPC_GPIO0->FIOCLR = 0x02;
+//    LPC_GPIO0->FIOSET = d & 0x02;
+
+    //printf("write8: %08x\n",LPC_GPIO2->FIOPIN);
 
 }
 
@@ -842,31 +935,7 @@ inline uint8_t TFTLCD::read8(void) {
 // d = DATAPIN1 & DATA1_MASK;
 // d |= DATAPIN2 & DATA2_MASK;
 //
-//#elif defined(__AVR_ATmega1281__) || defined(__AVR_ATmega2561__) || defined(__AVR_ATmega2560__)  || defined(__AVR_ATmega1280__)
-//
-//#ifdef USE_ADAFRUIT_SHIELD_PINOUT
-//
-//  // bit 6/7 (PH3 & 4)
-//  // first two bits 0 & 1 (PH5 & 6)
-// d = (PINH & 0x60) >> 5;
-// d |= (PINH & 0x18) << 3;
-//
-//  // bits 2 & 3 & 5 (PB4 & PB5, PB7)
-// d |= (PINB & 0xB0) >> 2;
-//
-//  // bit 4  (PG5)
-//  if (PING & _BV(5))
-//    d |= _BV(4);
-//
-//#else
-// d = MEGA_DATAPIN;
-//#endif
-//
-//#else
-//
-//  #warning "No pins defined!"
-//
-//#endif
+ //#endif
 
  // this should automatically truncate all values for pins above 7
  // which is what we want since we are only interested in 0-7 on P2
@@ -889,6 +958,7 @@ void TFTLCD::writeData(uint16_t data) {
   write8(data >> 8);
   
   WR_ACTIVE
+  for(int x=0; x<3; x++);                 //wait
   WR_IDLE
 
   write8(data);
@@ -905,6 +975,7 @@ inline void TFTLCD::writeData_unsafe(uint16_t data) {
   write8(data >> 8);
 
   WR_ACTIVE
+  for(int x=0; x<3; x++);                 //wait
   WR_IDLE
 
   write8(data);
@@ -912,6 +983,8 @@ inline void TFTLCD::writeData_unsafe(uint16_t data) {
   WR_ACTIVE
   WR_IDLE
 }
+
+
 
 // the C/D pin is low during write
 void TFTLCD::writeCommand(uint16_t cmd) {
@@ -925,6 +998,7 @@ void TFTLCD::writeCommand(uint16_t cmd) {
   write8((uint8_t)(cmd >> 8));
 
   WR_ACTIVE
+  for(int x=0; x<3; x++);                 //wait
   WR_IDLE
 
   write8((uint8_t)cmd);

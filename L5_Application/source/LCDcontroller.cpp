@@ -5,6 +5,8 @@
  *      Author: James
  */
 #include "LCDcontroller.hpp"
+#include "utilities.h"
+#include <stdio.h>
 
 //#define LCD_CS A3
 //#define LCD_CD A2
@@ -24,12 +26,18 @@
 #define WHITE           0xFFFF
 
 #include "TFTLCD.h"
+#include "gpio.hpp"
 
 // TFTLCD tft(LCD_CS, LCD_CD, LCD_WR, LCD_RD, LCD_RESET);
 // does not matter since ports are not defined this way on SJONE board
 
 
-LCDcontroller::LCDcontroller(uint8_t priority) : scheduler_task("LCD", 2048, priority, NULL), tft(0, 0, 0, 0, 0) {
+LCDcontroller::LCDcontroller(uint8_t priority) : scheduler_task("LCD", 2048, priority, NULL),
+                                                                        tft(0, 0, 0, 0, 0),
+                                                                        D0(P0_0),D1(P0_1),
+                                                                        D2(P2_2), D3(P2_3),
+                                                                        D4(P2_4), D5(P2_5),
+                                                                        D6(P2_6), D7(P2_7) {
     setRunDuration(33); // 30 frames per second refresh
 
 }
@@ -46,20 +54,95 @@ bool LCDcontroller::init(void) {
 }
 
 bool LCDcontroller::run(void * p) {
+    tft.setWriteDir();
+//    testFillRoundRect();
+//    testRoundRect();
+//    testtriangles();
+//    testfilltriangles();
+//    testfillcircles(10, BLUE);
+//    testdrawcircles(10, WHITE);
+//    testfillrects(BLUE, RED);
+//    testdrawrects(BLUE);
+//    testfastlines(BLUE, RED);
+//    testlines(RED);
+//    testBars();
+    delay_ms(500);
+    printf("SET LOW\n");
+    tft.testPinsLow();
 
-    testFillRoundRect();
-    testRoundRect();
-    testtriangles();
-    testfilltriangles();
-    testfillcircles(10, BLUE);
-    testdrawcircles(10, WHITE);
-    testfillrects(BLUE, RED);
-    testdrawrects(BLUE);
-    testfastlines(BLUE, RED);
-    testlines(RED);
-    testBars();
+
+    delay_ms(500);
+    printf("SET HIGH\n");
+    tft.testPinsHigh();
+
+    delay_ms(500);
+    printf("SET LOW\n");
+    tft.testPinsLow();
+
+    delay_ms(500);
+    printf("SET DATA 10\n");
+    tft.write8(10);
+
+    delay_ms(500);
+    printf("SET DATA 255\n");
+    tft.write8(255);
 
 
+    delay_ms(500);
+    printf("SET DATA 254\n");
+    tft.write8(254);
+
+
+    delay_ms(700);
+    printf("SET DATA 127\n");
+    tft.write8(127);
+
+
+    delay_ms(500);
+    printf("SET DATA 126\n");
+    tft.write8(126);
+
+    delay_ms(500);
+    printf("CONTROL SEQUENCE\n");
+    tft.testControlSequence();
+
+    delay_ms(500);
+    printf("DATA SEQUENCE\n");
+    tft.testDataSequence();
+
+    delay_ms(200);
+    D0.setHigh();
+
+    delay_ms(200);
+    D0.setLow();
+    D1.setHigh();
+
+    delay_ms(200);
+    D1.setLow();
+    D2.setHigh();
+
+    delay_ms(200);
+    D2.setLow();
+    D3.setHigh();
+
+    delay_ms(200);
+    D3.setLow();
+    D4.setHigh();
+
+    delay_ms(200);
+    D4.setLow();
+    D5.setHigh();
+
+    delay_ms(200);
+    D5.setLow();
+    D6.setHigh();
+
+    delay_ms(200);
+    D6.setLow();
+    D7.setHigh();
+
+    delay_ms(200);
+    D7.setLow();
     return true;
 }
 
