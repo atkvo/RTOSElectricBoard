@@ -16,6 +16,7 @@ ElectricBoardControl::~ElectricBoardControl()
 
 bool ElectricBoardControl::init(void)
 {
+    const unsigned int PWM_FREQ_HZ = 45;
     bool commandQueueShared = false;
     commandQueue = xQueueCreate(20, sizeof(float));
     if (commandQueue)
@@ -23,8 +24,8 @@ bool ElectricBoardControl::init(void)
         commandQueueShared = addSharedObject(shared_ElectricBoardQueue, commandQueue);
     }
 
-    motorChannel1 = new PWM(PWM::pwm1, 0);
-    motorChannel2 = new PWM(PWM::pwm2, 0);
+    motorChannel1 = new PWM(PWM::pwm1, PWM_FREQ_HZ);
+    motorChannel2 = new PWM(PWM::pwm2, PWM_FREQ_HZ);
 
     return commandQueue && commandQueueShared;
 }
@@ -46,9 +47,16 @@ bool ElectricBoardControl::run(void *param)
 
 void ElectricBoardControl::driveMotors(float powerLevel)
 {
+    // PWM Freq = 45 Hz
+    // This assumes no "reverse drive" for now
+    const float MAX_DUTY = 8.7;         // % Duty Cycle
+    const float IDLE_DUTY = 7.3;        // % Duty Cycle
+
     if (powerLevel > 100) { powerLevel = 100; }
     else if (powerLevel < 0) { powerLevel = 0; }
 
-    motorChannel1->set(powerLevel);
-    motorChannel2->set(powerLevel);
+    float dutyCycle = IDLE_DUTY + (MAX_DUTY - IDLE_DUTY) * powerLevel;
+
+    motorChannel1->set(dutyCycle);
+    motorChannel2->set(dutyCycle);
 }
