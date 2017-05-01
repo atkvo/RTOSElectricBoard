@@ -40,7 +40,7 @@ void InternalIO::initGPIO() {
     mask |= 1 << SW2_BIT;
     mask |= 1 << SW3_BIT;
     LPC_GPIO1->FIODIR &= ~(mask);
-    return true;
+    //return true;
 }
 
 bool InternalIO::IsSwitchPressed(uint8_t switchIndex) {

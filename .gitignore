@@ -4,3 +4,4 @@
 build/
 Debug/
 .DS_Store
+/_build/
