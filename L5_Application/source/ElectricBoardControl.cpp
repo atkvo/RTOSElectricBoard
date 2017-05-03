@@ -50,7 +50,7 @@ void ElectricBoardControl::driveMotors(float powerLevel)
     // PWM Freq = 45 Hz
     // This assumes no "reverse drive" for now
     const float MAX_DUTY = 8.7;         // % Duty Cycle
-    const float IDLE_DUTY = 7.3;        // % Duty Cycle
+    const float IDLE_DUTY = 7.2;        // % Duty Cycle
 
     if (powerLevel > 100) { powerLevel = 100; }
     else if (powerLevel < 0) { powerLevel = 0; }
