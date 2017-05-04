@@ -12,6 +12,10 @@ public:
     virtual bool init(void);
     virtual bool run(void *param);
 private:
+    const float MAX_DUTY = 8.7;         // % Duty Cycle
+    const float IDLE_DUTY = 7.2;        // % Duty Cycle
+    const float MIN_DUTY = 4.5;
+
     QueueHandle_t commandQueue;
     PWM *motorChannel1;
     PWM *motorChannel2;
