@@ -45,7 +45,6 @@ bool RemoteControl::run(void *param)
 	{
 		while(LPC_GPIO2->FIOPIN & (1 << 6)) // WHILE BUTTON IS PRESSED
 		{
-
 			powerLevel = calcPower(adc0_get_reading(3));
 			sendPowerLevel(powerLevel);
 		}
