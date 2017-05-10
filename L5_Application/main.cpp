@@ -27,6 +27,7 @@
 #include "examples/examples.hpp"
 #include "ElectricBoardControl.hpp"
 #include "ElectricBoardReceiver.hpp"
+#include "RemoteControl.hpp"
 
 /**
  * The main() creates tasks or "threads".  See the documentation of scheduler_task class at scheduler_task.hpp
@@ -54,10 +55,11 @@ int main(void)
      * such that it can save remote control codes to non-volatile memory.  IR remote
      * control codes can be learned by typing the "learn" terminal command.
      */
-    scheduler_add_task(new terminalTask(PRIORITY_HIGH));
+    //scheduler_add_task(new terminalTask(PRIORITY_HIGH));
 
     /* Consumes very little CPU, but need highest priority to handle mesh network ACKs */
     scheduler_add_task(new wirelessTask(PRIORITY_CRITICAL));
+
     // scheduler_add_task(new AccelProducerTask(PRIORITY_MEDIUM, false));
     // scheduler_add_task(new AccelConsumerTask(PRIORITY_MEDIUM));
     // scheduler_add_task(new SemaphoreTask(PRIORITY_HIGH));
@@ -65,7 +67,7 @@ int main(void)
     // scheduler_add_task(new led_switch_task(PRIORITY_LOW, false));
     scheduler_add_task(new ElectricBoardControl(PRIORITY_LOW));
     scheduler_add_task(new ElectricBoardReceiver(PRIORITY_LOW));
-
+    //scheduler_add_task(new RemoteControl(PRIORITY_HIGH));
     // scheduler_add_task(new FlashMemoryTask(PRIORITY_LOW));
 
     /* Change "#if 0" to "#if 1" to run period tasks; @see period_callbacks.cpp */

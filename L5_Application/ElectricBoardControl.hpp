@@ -19,7 +19,7 @@ private:
     QueueHandle_t commandQueue;
     PWM *motorChannel1;
     PWM *motorChannel2;
-    uint16_t driveTimeout;
+    uint16_t driveTimeout = 500;
 
     void driveMotors(float powerLevel);
 };

@@ -3,11 +3,10 @@
 #include "shared_handles.h"
 #include <stdio.h>
 #include "queue.h"
+#include "printf_lib.h"
 
 ElectricBoardControl::ElectricBoardControl(uint8_t priority) :
-    scheduler_task("ctrlbrd", 1024, priority, NULL),
-    driveTimeout(500)
-{
+    scheduler_task("ctrlbrd", 1024, priority, NULL) {
 }
 
 ElectricBoardControl::~ElectricBoardControl()
@@ -39,8 +38,9 @@ bool ElectricBoardControl::run(void *param)
 
     // If no command is received in driveTimeout milliseconds, then the drive
     // will be set to 0. The trigger needs to be held to keep driving the motors.
-    float driveLevel = 0;
+    int driveLevel = 0;
     xQueueReceive(commandQueue, &driveLevel, driveTimeout);
+    //u0_dbg_printf("Driving motors at %i % \n", driveLevel);
     driveMotors(driveLevel);
     return true;
 }

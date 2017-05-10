@@ -19,13 +19,13 @@ public:
     virtual ~RemoteControl();
     virtual bool init(void);
     virtual bool run(void *param);
-    static SemaphoreHandle_t buttonSignal;
+
 private:
     const float MAX_READ = 4095;
-    float powerLevel = 0;
+    int powerLevel = 0;
 
-    float calcPower(float input);
-    void sendPowerLevel(float powerLevel);
+    float calcPower(int input);
+    void sendPowerLevel(void);
 };
 
 
