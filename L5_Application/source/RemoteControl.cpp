@@ -67,7 +67,7 @@ float RemoteControl::calcPower(int input)
 void RemoteControl::sendPowerLevel(void)
 {
 	//TODO
-	//u0_dbg_printf("Sending power level of %i \n", powerLevel);
+	u0_dbg_printf("Sending power level of %i \n", powerLevel);
 	mesh_packet_t packet;
 	wireless_send(MESH_BROADCAST_ADDR, mesh_pkt_nack, (int*)&powerLevel, 1, 0);
 }

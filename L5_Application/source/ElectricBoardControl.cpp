@@ -6,7 +6,7 @@
 #include "printf_lib.h"
 
 ElectricBoardControl::ElectricBoardControl(uint8_t priority) :
-    scheduler_task("ctrlbrd", 1024, priority, NULL) {
+    scheduler_task("ctrlbrd", 5000, priority, NULL) {
 }
 
 ElectricBoardControl::~ElectricBoardControl()
@@ -52,7 +52,8 @@ void ElectricBoardControl::driveMotors(float powerLevel)
     if (powerLevel > 100) { powerLevel = 100; }
     else if (powerLevel < 0) { powerLevel = 0; }
 
-    float dutyCycle = IDLE_DUTY + (MAX_DUTY - IDLE_DUTY) * powerLevel;
+    double dutyCycle = IDLE_DUTY + (MAX_DUTY - IDLE_DUTY) * (powerLevel / 100);
+    u0_dbg_printf("Duty Cycle is %f % \n", dutyCycle);
 
     motorChannel1->set(dutyCycle);
     motorChannel2->set(dutyCycle);
