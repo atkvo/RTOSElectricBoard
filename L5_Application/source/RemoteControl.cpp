@@ -2,12 +2,14 @@
 #include "lpc_pwm.hpp"
 #include "shared_handles.h"
 #include <stdio.h>
+#include "OnScreenData.hpp"
 #include "queue.h"
 #include "eint.h"
 #include "semphr.h"
 #include "adc0.h"
 #include "printf_lib.h"
 #include "wireless.h"
+
 
 SemaphoreHandle_t buttonSignal;
 
@@ -38,29 +40,30 @@ bool RemoteControl::init(void)
 	xSemaphoreTake(buttonSignal, 0);
 
 	bool screenQueueShared = false;
-	//screenQueue = xQueueCreate(20, sizeof(onScreenData));
+	screenQueue = xQueueCreate(20, sizeof(OnScreenData));
 	if (screenQueue)
 	{
 	    screenQueueShared = addSharedObject(shared_screenQueue, screenQueue);
 	}
 
-    return true;
+	return screenQueue && screenQueueShared;
 }
 
 
 
 bool RemoteControl::run(void *param)
 {
+	OnScreenData data;
 	while(xSemaphoreTake(buttonSignal, portMAX_DELAY)) //WAIT FOR BUTTON PRESS TO GIVE BINARY SEMAPHORE
 	{
 		while(LPC_GPIO2->FIOPIN & (1 << 6)) // WHILE BUTTON IS PRESSED
 		{
-			powerLevel = calcPower(adc0_get_reading(3));
-			//xQueueSend(screenQueue, &powerLevel, 0);
+			data.powerLevel = calcPower(adc0_get_reading(3));
+			xQueueSend(screenQueue, &data, 0);
 			sendPowerLevel();
 		}
-		powerLevel = 0;
-		xQueueSend(screenQueue, &powerLevel, 0);
+		data.powerLevel = 0;
+		xQueueSend(screenQueue, &data, 0);
 		sendPowerLevel();
 	}
     return true;
@@ -77,6 +80,5 @@ void RemoteControl::sendPowerLevel(void)
 {
 	//TODO
 	u0_dbg_printf("Sending power level of %i \n", powerLevel);
-	mesh_packet_t packet;
 	wireless_send(MESH_BROADCAST_ADDR, mesh_pkt_nack, (int*)&powerLevel, 1, 0);
 }
