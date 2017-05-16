@@ -58,7 +58,6 @@ bool LCDcontroller::init(void) {
 
 bool LCDcontroller::run(void * p) {
     printf("\n-------------------\nrestarting...\n------------------\n");
-    tft.setWriteDir();
     printf("TESTING FILL ROUND RECTANGLES...\n");
     testFillRoundRect();
 

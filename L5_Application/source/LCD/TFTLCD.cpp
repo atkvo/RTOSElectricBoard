@@ -5,6 +5,9 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#define swap(a, b)  { int16_t t = a; a = b; b = t; }
+
+
 #define TFTLCD_DRIV_ID_READ     0x00
 #define TFTLCD_DRIV_OUT_CTRL        0x01
 #define TFTLCD_DRIV_WAV_CTRL        0x02
@@ -91,7 +94,7 @@
 #define CD_DATA     comm_data.setHigh();
 #define CD_COMMAND  comm_data.setLow();
 
-#include "glcdfont.c"
+//#include "glcdfont.c"
 //#include <avr/pgmspace.h>
 //#include "pins_arduino.h"
 //#include "wiring_private.h"
@@ -196,17 +199,17 @@ void TFTLCD::setTextColor(uint16_t c) {
   textcolor = c;
 }
 
-void TFTLCD::write(uint8_t c) {
-  if (c == '\n') {
-    cursor_y += textsize*8;
-    cursor_x = 0;
-  } else if (c == '\r') {
-    // skip em
-  } else {
-    drawChar(cursor_x, cursor_y, c, textcolor, textsize);
-    cursor_x += textsize*6;
-  }
-}
+//void TFTLCD::write(uint8_t c) {
+//  if (c == '\n') {
+//    cursor_y += textsize*8;
+//    cursor_x = 0;
+//  } else if (c == '\r') {
+//    // skip em
+//  } else {
+//    drawChar(cursor_x, cursor_y, c, textcolor, textsize);
+//    cursor_x += textsize*6;
+//  }
+//}
 
 void TFTLCD::pushColors(uint16_t *data, uint8_t len,
 			bool first) {
@@ -227,34 +230,34 @@ void TFTLCD::pushColors(uint16_t *data, uint8_t len,
   }
 }
 
-void TFTLCD::drawString(uint16_t x, uint16_t y, char *c, 
-			uint16_t color, uint8_t size) {
-  while (c[0] != 0) {
-    drawChar(x, y, c[0], color, size);
-    x += size*6;
-    c++;
-  }
-}
+//void TFTLCD::drawString(uint16_t x, uint16_t y, char *c,
+//			uint16_t color, uint8_t size) {
+//  while (c[0] != 0) {
+//    drawChar(x, y, c[0], color, size);
+//    x += size*6;
+//    c++;
+//  }
+//}
 
-// draw a character
-void TFTLCD::drawChar(uint16_t x, uint16_t y, char c, 
-		      uint16_t color, uint8_t size)
-{
-  for (uint8_t i =0; i<5; i++ ) {
-//      uint8_t line = pgm_read_byte(font+(c*5)+i);
-      uint8_t line = font[(c*5)+i];
-    for (uint8_t j = 0; j<8; j++) {
-      if (line & 0x1) {
-	if (size == 1) // default size
-	  drawPixel(x+i, y+j, color);
-	else {  // big size
-	  fillRect(x+i*size, y+j*size, size, size, color);
-	}
-      }
-      line >>= 1;
-    }
-  }
-}
+//// draw a character
+//void TFTLCD::drawChar(uint16_t x, uint16_t y, char c,
+//		      uint16_t color, uint8_t size)
+//{
+//  for (uint8_t i =0; i<5; i++ ) {
+////      uint8_t line = pgm_read_byte(font+(c*5)+i);
+//      uint8_t line = font[(c*5)+i];
+//    for (uint8_t j = 0; j<8; j++) {
+//      if (line & 0x1) {
+//	if (size == 1) // default size
+//	  drawPixel(x+i, y+j, color);
+//	else {  // big size
+//	  fillRect(x+i*size, y+j*size, size, size, color);
+//	}
+//      }
+//      line >>= 1;
+//    }
+//  }
+//}
 
 
 // draw a triangle!
@@ -568,7 +571,9 @@ void TFTLCD::drawLine(int16_t x0, int16_t y0,
 {
   // if you're in rotation 1 or 3, we need to swap the X and Y's
 
-  int16_t steep = abs(y1 - y0) > abs(x1 - x0);
+  static int16_t steep;
+  steep = abs(y1 - y0) > abs(x1 - x0);
+
   if (steep) {
     swap(x0, y0);
     swap(x1, y1);
@@ -610,10 +615,10 @@ void TFTLCD::drawLine(int16_t x0, int16_t y0,
 void TFTLCD::fillScreen(uint16_t color) 
 {
   goHome();
-  uint32_t i;
+  static uint32_t i;
   
-  i = 320;
-  i *= 240;
+  i = _height;
+  i *= _width;
   
   CS_ACTIVE
   CD_DATA
@@ -770,17 +775,10 @@ void TFTLCD::initDisplay(void) {
   reset();
   
   for (uint8_t i = 0; i < regSize; i += 2) {
-    // only necessary if array was still stored in PROGMEM
-//    a = pgm_read_word(_regValues + i*2);
-//    d = pgm_read_word(_regValues + i*2 + 1);
+
       addr = _regValues[i];
       data = _regValues[i+1];
 
-//    if (address == 0xFF) {
-//      delay(data);
-//    } else {
-//      writeRegister(addr, data);
-//     }
       if(addr == DELAY) {
           delay_ms(data);
           printf("DELAY\n");
@@ -843,11 +841,6 @@ void TFTLCD::setRotation(uint8_t x) {
 
 TFTLCD::TFTLCD(uint8_t cs, uint8_t cd, uint8_t wr,
 	       uint8_t rd, uint8_t rst) : resetSelect(P1_31), chipSelect(P1_30), comm_data(P1_29), writeSelect(P1_28), readSelect(P1_23)  {
-//  _cs = cs;
-//  _cd = cd;
-//  _wr = wr;
-//  _rd = rd;
-//  _reset = rst;
   
   resetSelect.setHigh();
   resetSelect.setAsOutput();
@@ -894,7 +887,7 @@ void TFTLCD::reset(void) {
   writeData(0);
 }
 
- void TFTLCD::setWriteDir(void) {
+ inline void TFTLCD::setWriteDir(void) {
 
   LPC_GPIO2->FIODIR |= 0xFF; // sets pins 0-7 on Port 2 to output
 //  LPC_GPIO0->FIODIR |= 0x04; // sets pins 0-1 on Port 0 to output
@@ -908,10 +901,8 @@ inline void TFTLCD::setReadDir(void) {
 
 }
 
- void TFTLCD::write8(uint8_t d) {
+inline void TFTLCD::write8(uint8_t d) {
 
-//    LPC_GPIO2->FIOPIN &= ~(0xFF);
-//    LPC_GPIO2->FIOPIN |= d;
     LPC_GPIO2->FIOCLR = 0xFF;
     LPC_GPIO2->FIOSET = d;
 
@@ -941,20 +932,18 @@ void TFTLCD::writeData(uint16_t data) {
   write8(data >> 8);
   
   WR_ACTIVE
-  // delay_us(10);
   WR_IDLE
-  // delay_us(10);
 
   write8(data);
 
   WR_ACTIVE
-  // delay_us(10);
+
 
   WR_IDLE
-  // delay_us(10);
+
 
   CS_IDLE
-  // delay_us(10);
+
 
 }
 
@@ -965,25 +954,25 @@ inline void TFTLCD::writeData_unsafe(uint16_t data) {
   write8(data >> 8);
 
   WR_ACTIVE
-  // delay_us(10);
+
 
   WR_IDLE
-  // delay_us(10);
+
 
   write8(data);
 
   WR_ACTIVE
-  // delay_us(10);
+
 
   WR_IDLE
-  // delay_us(10);
+
 
 }
 
 
 
 // the C/D pin is low during write
-void TFTLCD::writeCommand(uint16_t cmd) {
+inline void TFTLCD::writeCommand(uint16_t cmd) {
 
   CS_ACTIVE
   CD_COMMAND
@@ -994,22 +983,22 @@ void TFTLCD::writeCommand(uint16_t cmd) {
   write8((uint8_t)(cmd >> 8));
 
   WR_ACTIVE
-  // delay_us(10);
+
   WR_IDLE
-  // delay_us(10);
+
 
   write8((uint8_t)cmd);
 
   WR_ACTIVE
-  // delay_us(10);
+
   WR_IDLE
-  // delay_us(10);
+
   CS_IDLE
-  // delay_us(10);
+
 
 }
 
-uint16_t TFTLCD::readData() {
+inline uint16_t TFTLCD::readData() {
   uint16_t d = 0;
 
   CS_ACTIVE
@@ -1022,7 +1011,7 @@ uint16_t TFTLCD::readData() {
   RD_ACTIVE
 
   // delayMicroseconds(10);
-  // delay_us(10);
+
   d = read8();
   d <<= 8;
 
@@ -1030,7 +1019,7 @@ uint16_t TFTLCD::readData() {
   RD_ACTIVE
 
   //delayMicroseconds(10);
-  // delay_us(10);
+
 
   d |= read8();
 
@@ -1043,12 +1032,12 @@ uint16_t TFTLCD::readData() {
 
 /************************************* medium level data reading/writing */
 
-uint16_t TFTLCD::readRegister(uint16_t addr) {
+inline uint16_t TFTLCD::readRegister(uint16_t addr) {
    writeCommand(addr);
    return readData();
 }
 
-void TFTLCD::writeRegister(uint16_t addr, uint16_t data) {
+inline void TFTLCD::writeRegister(uint16_t addr, uint16_t data) {
    writeCommand(addr);
    writeData(data);
 }

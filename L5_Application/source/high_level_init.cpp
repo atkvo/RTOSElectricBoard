@@ -165,19 +165,25 @@ void high_level_init(void)
     /* Initialize all sensors of this board and display "--" on the LED display if an error has occurred. */
     if(!hl_init_board_io()) {
         hl_print_line();
+        printf("badIO\n");
         LD.setLeftDigit('-');
         LD.setRightDigit('-');
         LE.setAll(0xFF);
+        printf("test1");
     }
     else {
+        printf("goodIO\n");
         LD.setNumber(TS.getFarenheit());
     }
 
+    printf("try to set Node Addr\n");
     /* After Flash memory is mounted, try to set node address from a file */
     hl_wireless_set_addr_from_file();
+    printf("set Node Addr\n");
 
     /* Feed the random seed to get random numbers from the rand() function */
     srand(LS.getRawValue() + time(NULL));
+    printf("set set Random seed\n");
 
     /* Print memory information before we call main() */
     do {
@@ -186,6 +192,7 @@ void high_level_init(void)
         printf("%s", buff);
         hl_print_line();
     } while(0);
+    printf("Printed memory\n");
 
     /* Print miscellaneous info */
     hl_handle_board_id();

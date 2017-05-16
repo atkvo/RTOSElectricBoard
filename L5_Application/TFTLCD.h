@@ -59,7 +59,6 @@
 
 //#define TFTLCD_DELAYCMD                0xFF
 
-#define swap(a, b) { int16_t t = a; a = b; b = t; }
 
 class TFTLCD {
   private:
@@ -138,7 +137,7 @@ class TFTLCD {
   void setTextColor(uint16_t c);
   void setTextSize(uint8_t s);
 //  virtual size_t write(uint8_t);
-  virtual void write(uint8_t);
+//  virtual void write(uint8_t);
 
   void drawChar(uint16_t x, uint16_t y, char c,
 		uint16_t color, uint8_t s = 1);

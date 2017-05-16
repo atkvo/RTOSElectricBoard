@@ -27,11 +27,15 @@
 #include "examples/examples.hpp"
 #include "ElectricBoardControl.hpp"
 #include "ElectricBoardReceiver.hpp"
-#include "LCDcontroller.hpp"
 
 //#define BOARD_CONTROLLER
 #define REMOTE_CONTROLLER
 
+#ifdef REMOTE_CONTROLLER
+//#include "RemoteControl.hpp"
+#include "LCDcontroller.hpp"
+#include "RemoteUI.hpp"
+#endif
 /**
  * The main() creates tasks or "threads".  See the documentation of scheduler_task class at scheduler_task.hpp
  * for details.  There is a very simple example towards the beginning of this class's declaration.
@@ -62,6 +66,7 @@ int main(void)
 
     /* Consumes very little CPU, but need highest priority to handle mesh network ACKs */
     scheduler_add_task(new wirelessTask(PRIORITY_CRITICAL));
+
     // scheduler_add_task(new AccelProducerTask(PRIORITY_MEDIUM, false));
     // scheduler_add_task(new AccelConsumerTask(PRIORITY_MEDIUM));
     // scheduler_add_task(new SemaphoreTask(PRIORITY_HIGH));
@@ -72,8 +77,12 @@ int main(void)
     scheduler_add_task(new ElectricBoardReceiver(PRIORITY_LOW));
 #endif
     // scheduler_add_task(new FlashMemoryTask(PRIORITY_LOW));
+
 #ifdef REMOTE_CONTROLLER
-    scheduler_add_task(new LCDcontroller(PRIORITY_MEDIUM));
+    //scheduler_add_task(new RemoteControl(PRIORITY_HIGH));
+//    scheduler_add_task(new LCDcontroller(PRIORITY_MEDIUM));
+        scheduler_add_task(new RemoteUI(PRIORITY_MEDIUM));
+
 #endif
 
     /* Change "#if 0" to "#if 1" to run period tasks; @see period_callbacks.cpp */
