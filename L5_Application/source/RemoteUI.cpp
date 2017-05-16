@@ -10,6 +10,8 @@
 #include <stdio.h>
 //#include <stdlib.h>
 #include "LCD/draw.hpp"
+#include "OnScreenData.hpp"
+#include "queue.h"
 //#include <sstream>
 //#include <string>
 
@@ -20,7 +22,7 @@ RemoteUI::RemoteUI(uint8_t priority) : scheduler_task("LCD", 12000 , priority, N
 }
 
 bool RemoteUI::init(void) {
-
+    qh = xQueueCreate(1,sizeof(OnScreenData));
     printf("init screen (even though unnecessary)\n");
     //mainScreen = new Screen();
     manager = new FrameManager(mainScreen);
@@ -195,6 +197,8 @@ bool RemoteUI::run(void * p) {
     if (SW.getSwitch(4)) {
         testVal--;
     }
+
+
 
     snprintf(testValStr,8,"%d",testVal);
     //    pwrLvl->setText(itoa(testVal));
