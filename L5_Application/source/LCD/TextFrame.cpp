@@ -30,20 +30,29 @@ TextFrame::TextFrame(Point _size, Point _position,const char *_text,uint8_t txSi
 }
 
 void TextFrame::setText(const char *_text) {
-    static uint16_t size;
-    size = strlen(_text) + 1;
-    if (size < 32) {
-        strncpy(text,_text,size);
-    } else {
-        strncpy(text,_text,31);
-        text[31] = '\0';
+    if (strcmp(_text, text) != 0) {
+        erase();
+        static uint16_t size;
+        size = strlen(_text) + 1;
+        if (size < 32) {
+            strncpy(text,_text,size);
+        } else {
+            strncpy(text,_text,31);
+            text[31] = '\0';
+        }
     }
+
 }
 
 void TextFrame::draw() {
+    setDraw();
     print(_screen,text, _position.x,_position.y,textSize);
+    changed = false;
+
 }
 
-TextFrame::~TextFrame() {
-
+void TextFrame::erase() {
+    setErase();
+    print(_screen,text, _position.x,_position.y,textSize);
+    changed = true;
 }

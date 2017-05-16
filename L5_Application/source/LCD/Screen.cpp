@@ -1,7 +1,5 @@
 #include "Screen.hpp"
 #include <stdio.h>
-#include "TFTLCD.h"
-
 
 void Screen::drawPixel(int32_t x,int32_t y, uint8_t color) {
     if(x < SCREEN_WIDTH && x >= 0 && y < SCREEN_HEIGHT && y >= 0) {
@@ -37,11 +35,11 @@ void Screen::drawBuffer()
             if (screenBuffer[pxrow][pxcol])
             {
                 // printf("buffer: %d x: %3d y: %3d \n",sizeof(screenBuffer),pxrow,pxcol);
-                tft->drawDev(pxcol, pxrow, true);
+                drawDev(pxcol, pxrow, true);
             }
             else
             {
-                tft->drawDev(pxcol, pxrow, false);
+                drawDev(pxcol, pxrow, false);
             }
 #else
             static int32_t whichBit=0;
@@ -55,12 +53,10 @@ void Screen::drawBuffer()
             {
                 // printf("buffer: %lu height: %3d x: %3d y: %3d whichBit: %3d whichByte: %3d whichSubBit: %3d\n",sizeof(screenBuffer),SCREEN_HEIGHT, pxcol,pxrow,whichBit,whichByte, whichSubBit);
 //                drawDev(pxcol, pxrow, true);
-                tft->drawPixel(pxcol, pxrow, 0xFFFF);
             }
             else
             {
 //                drawDev(pxcol, pxrow, false);
-                tft->drawPixel(pxcol, pxrow, 0x0000);
             }
 
 #endif

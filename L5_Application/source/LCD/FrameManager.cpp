@@ -46,10 +46,14 @@
                 static ViewFrame *thisFrame;
                 thisFrame = frames[frame_index];
                 // _screen->setMask(&thisFrame->getMaskPosition(),&thisFrame->getMaskSize());
-                _screen->setMask(thisFrame->getMaskCorners());
-                frames[frame_index]->draw();
+                // _screen->setMask(thisFrame->getMaskCorners());
+                 if(thisFrame->changed){
+                    setPixelMaskCorners(thisFrame->getMaskCorners());
+                    frames[frame_index]->draw();
+                 }
+
             }
         }
-        _screen->drawBuffer();
+        // _screen->drawBuffer();
         AM->animate();
     }

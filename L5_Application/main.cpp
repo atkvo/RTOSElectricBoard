@@ -33,7 +33,7 @@
 
 #ifdef REMOTE_CONTROLLER
 //#include "RemoteControl.hpp"
-#include "LCDcontroller.hpp"
+//#include "LCDcontroller.hpp"
 #include "RemoteUI.hpp"
 #endif
 /**

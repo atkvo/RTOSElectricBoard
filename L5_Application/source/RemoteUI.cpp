@@ -8,9 +8,12 @@
 #include "io.hpp"
 #include <string.h>
 #include <stdio.h>
+//#include <stdlib.h>
+#include "LCD/draw.hpp"
+#include <sstream>
+//#include <string>
 
-
-RemoteUI::RemoteUI(uint8_t priority) : scheduler_task("LCD", 10624 , priority, NULL), tft(0, 0, 0, 0, 0) {
+RemoteUI::RemoteUI(uint8_t priority) : scheduler_task("LCD", 20000 , priority, NULL), tft(0, 0, 0, 0, 0) {
     //    setRunDuration(33); // 30 frames per second refresh
         setRunDuration(33); // 30 frames per second refresh
 
@@ -18,10 +21,12 @@ RemoteUI::RemoteUI(uint8_t priority) : scheduler_task("LCD", 10624 , priority, N
 
 bool RemoteUI::init(void) {
 
+    printf("init screen (even though unnecessary)\n");
     mainScreen = new Screen();
     manager = new FrameManager(mainScreen);
 
-    mainScreen->tft = &tft;
+//    mainScreen->tft = &tft;
+    setTFT(&tft);
 
     printf("RESETING...\n");
     tft.reset();
@@ -36,9 +41,9 @@ bool RemoteUI::init(void) {
 
 bool RemoteUI::run(void * p) {
     static bool first_time = true;
-
     static TextFrame *nameFrame;
-    static TextFrame *testFrame;
+    static TextFrame *pwrLabel;
+    static TextFrame *pwrLvl;
     static DrawFrame *rec1;
     static int32_t *border1params;
     static int32_t *border2params;
@@ -57,10 +62,11 @@ bool RemoteUI::run(void * p) {
     static int32_t *bl4;
     static int32_t *box;
 
-    static const char * test = "--TESTING--";
+    static const char * test = "PWR LVL";
     static int16_t font_width = 6;
     static int16_t font_size = 3;
-    static Point *testFramePos;
+    static Point *pwrLabelPos;
+    static Point *pwrLvlPos;
 
     static int32_t margin = 15;
     static int32_t rec_height = 50;
@@ -138,27 +144,38 @@ bool RemoteUI::run(void * p) {
         // rec2 = new DrawFrame(Point(240,3),Point(margin, SCREEN_HEIGHT/2 + (rec_height/2) - 3));
         // rec2->setMask(Point(0,0),Point(SCREEN_WIDTH,SCREEN_HEIGHT));
 
-        testFramePos = new Point();
-        testFrame = new TextFrame(Point(200,50),*testFramePos,test,3);
-        testFrame->setMask(Point(0,135),Point(240,50));
+        pwrLabelPos = new Point();
+        pwrLvlPos = new Point();
+        pwrLabel = new TextFrame(Point(150,50),*pwrLabelPos,test,3);
+        pwrLvl = new TextFrame(Point(50,50),*pwrLvlPos,test,3);
         nameFrame = new TextFrame(Point(200,50),Point(30,280),bname,4);
         TextFrame *txt = new TextFrame(Point(200,50),Point(20,20),"BOARD CONNECTION: ACTIVE",1);
         TextFrame *txt2 = new TextFrame(Point(200,50),Point(20,40),"OP. TIME ELAPSED: XX:XX",1);
         TextFrame *txt3 = new TextFrame(Point(200,50),Point(20,60),"EST. TIME REMAINING: XX:XX",1);
 
         manager->addFrame(nameFrame);
-        manager->addFrame(testFrame);
+        manager->addFrame(pwrLabel);
+        manager->addFrame(pwrLvl);
         manager->addFrame((ViewFrame*)rec1);
         manager->addFrame((ViewFrame*)battery);
         manager->addFrame((ViewFrame*)txt);
         manager->addFrame((ViewFrame*)txt2);
         manager->addFrame((ViewFrame*)txt3);
 
+        pwrLabel->setMask(Point(0,140),Point(240,40));
+        pwrLvl->setMask(Point(0,140),Point(240, 40));
+        pwrLabelPos->x = 10 + SCREEN_WIDTH/2 - (strlen(test)* font_size/2 * font_width);
+        pwrLvlPos->x = 15;
+
         first_time = false;
     }
 
     //mainScreen->clear();
     static int32_t scroller = 150;
+    static int16_t testVal = 0;
+    static char *testValStr;
+
+
     if (SW.getSwitch(1)){
         scroller++;
         printf("inc\n");
@@ -168,12 +185,31 @@ bool RemoteUI::run(void * p) {
         scroller--;
         printf("dec\n");
     }
-    testFramePos->x = SCREEN_WIDTH/2 - (strlen(test)* font_size/2 * font_width);
-    testFramePos->y = scroller;
-    testFrame->setPosition(*testFramePos);
+
+    if (SW.getSwitch(3)) {
+        testVal++;
+    }
+    if (SW.getSwitch(4)) {
+        testVal--;
+    }
+
+//    snprintf(testValStr,8,"%d",testVal);
+    //    pwrLvl->setText(itoa(testVal));
+    static stringstream ss;
+    ss.str(std::string());
+    ss << testVal;
+    printf("stream: %s\n",ss.str().c_str());
+////    const char *testValStr = ss.str().c_str();
+    pwrLvl->setText(ss.str().c_str());
+//    pwrLvl->setText(testValStr);
+    pwrLvlPos->y = scroller;
+    pwrLabelPos->y = scroller;
+
+    pwrLvl->setPosition(*pwrLvlPos);
+    pwrLabel->setPosition(*pwrLabelPos);
     // Point currentPOS;
-    // currentPOS = testFrame->getPosition();
-    // printf("testFrame position: %d %d\n", currentPOS.x, currentPOS.y);
+    // currentPOS = pwrLabel->getPosition();
+    // printf("pwrLabel position: %d %d\n", currentPOS.x, currentPOS.y);
     // print(mainScreen,(char *)test,SCREEN_WIDTH/2 - (strlen(test)* font_size/2 * font_width),scroller,font_size);
 
     // drawRec(mainScreen, margin,SCREEN_HEIGHT/2 - (rec_height/2),SCREEN_WIDTH - margin,SCREEN_HEIGHT/2 - (rec_height/2)+3);

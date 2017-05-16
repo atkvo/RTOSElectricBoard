@@ -19,6 +19,7 @@ public:
 
     void setText(const char *_text);
     void draw();
+    void erase();
     ~TextFrame();
 };
 

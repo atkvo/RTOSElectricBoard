@@ -8,6 +8,7 @@ class ScrollFrame : public ViewFrame {
     // needs as many text frames as 
     ScrollFrame();
     void draw();
+    void erase();
 };
 
 

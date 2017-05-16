@@ -9,3 +9,7 @@ ScrollFrame::ScrollFrame() {
 void ScrollFrame::draw() {
     
 }
+
+void ScrollFrame::erase() {
+    
+}

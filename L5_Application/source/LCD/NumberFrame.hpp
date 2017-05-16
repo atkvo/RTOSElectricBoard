@@ -20,6 +20,7 @@ class NumberFrame : ViewFrame {
     void resetNumChangeAnimation(); 
     void setVal(int32_t val);
     void draw();
+    void erase();
 };
 
 #endif

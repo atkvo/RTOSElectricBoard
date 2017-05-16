@@ -5,6 +5,10 @@
 
 typedef int32_t frame_id;
 
+
+#define SCREEN_WIDTH 240
+#define SCREEN_HEIGHT 320
+
 typedef enum {
     UpperLeft,
     LowerLeft,

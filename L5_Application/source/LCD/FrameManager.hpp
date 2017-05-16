@@ -8,6 +8,7 @@
 #include "ScrollFrame.hpp"
 #include "Screen.hpp"
 #include "Point.hpp"
+#include "pixel.h"
 #include "TFTLCD.h"
 
 typedef struct {
@@ -21,7 +22,6 @@ class FrameManager {
     Screen *_screen;
     Animation *_aniManager;
 public:
-    TFTLCD *tft;
     FrameManager(Screen *screen);
     frame_id addFrame(ViewFrame *frame);
     bool delFrame(frame_id id);

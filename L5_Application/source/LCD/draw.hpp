@@ -9,15 +9,18 @@
 #define DRAW_HPP
 
 #include <stdint.h>
+#include "pixel.h"
 #include "fonts.h"
 #include "stdint.h"
 #include "Screen.hpp"
 #include "Point.hpp"
+#include "TFTLCD.h"
 
 
 
 // extern uint8_t screenBuffer[SCREEN_HEIGHT][SCREEN_WIDTH]; 
 // extern uint8_t * current_font;
+
 
 void drawLine( Screen *screen, int32_t x1, int32_t y1, int32_t x2, int32_t y2);
 void drawRec( Screen *screen, int32_t x1, int32_t y1, int32_t x2, int32_t y2);

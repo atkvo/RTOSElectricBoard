@@ -7,22 +7,15 @@ ViewFrame::ViewFrame() {
     _position = p;
 }
 
-ViewFrame::ViewFrame(Screen &screen) {
-    Point p;
-    Point s;
-
-    _position = p;
-    _size = s;
+ViewFrame::ViewFrame(Screen &screen) : _size(), _position(), _screen(&screen) {
     setCorners();
     _screen = &screen;
 
 }
 
-ViewFrame::ViewFrame(Point size, Point position) : _position(), _size(), corners(),_maskSize(),_maskPosition() {
-    _size = size;
-    _position = position;
+ViewFrame::ViewFrame(Point size, Point position) :  _size(size), _position(position), corners(),_maskSize(SCREEN_WIDTH,SCREEN_HEIGHT),_maskPosition() {
     setCorners();
-    setMask(_maskPosition,Point(SCREEN_WIDTH,SCREEN_HEIGHT));
+    setMaskCorners();
 }
 
 ViewFrame::ViewFrame(Screen &screen, Point size, Point position) {
@@ -47,20 +40,24 @@ void ViewFrame::setCorners() {
 
 }
 
-void ViewFrame::setMask(Point pos, Point sz) {
-    maskCorners[UpperLeft] = pos;
+void ViewFrame::setMaskCorners() {
+    maskCorners[UpperLeft] = _maskPosition;
 
-    Point LL(pos.x + sz.x, pos.y);
+    Point LL(_maskPosition.x + _maskSize.x, _maskPosition.y);
     maskCorners[LowerLeft] = LL;
 
-    Point UR(pos.x, pos.y + sz.y);
+    Point UR(_maskPosition.x, _maskPosition.y + _maskSize.y);
     maskCorners[UpperRight] = UR;
 
-    Point LR(pos.x + sz.x, pos.y + sz.y);
+    Point LR(_maskPosition.x + _maskSize.x, _maskPosition.y + _maskSize.y);
     maskCorners[LowerRight] = LR;
+}
 
+void ViewFrame::setMask(Point pos, Point sz) {
+    erase();
     _maskPosition = pos;
     _maskSize = sz;
+    setMaskCorners();
 }
 
 Point& ViewFrame::getMaskPosition() {
@@ -81,17 +78,23 @@ Point * ViewFrame::getCorners() {
 
 
 void ViewFrame::setPosition(Point p) {
-    _position = p;
-    setCorners();
+    if (p.y!= _position.y || p.x != _position.x ){
+        erase();
+        _position = p;
+        setCorners();
+    }
 }
 
 Point &ViewFrame::getPosition() {
     return _position;
 }
 
-void ViewFrame::setSize(Point s) {
-    _size = s;
-    setCorners();
+void ViewFrame::setSize(Point &size) {
+    if (size.y!= _size.y || size.x != _size.x ){
+        erase();
+        _size = size;
+        setCorners();
+    }
 }
 
 void ViewFrame::setScreen(Screen *screen) {
