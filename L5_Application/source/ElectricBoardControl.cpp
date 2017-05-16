@@ -17,7 +17,7 @@ bool ElectricBoardControl::init(void)
 {
     const unsigned int PWM_FREQ_HZ = 45;
     bool commandQueueShared = false;
-    commandQueue = xQueueCreate(20, sizeof(float));
+    commandQueue = xQueueCreate(20, sizeof(int));
     if (commandQueue)
     {
         commandQueueShared = addSharedObject(shared_ElectricBoardQueue, commandQueue);
