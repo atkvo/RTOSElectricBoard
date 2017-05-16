@@ -22,7 +22,7 @@ RemoteUI::RemoteUI(uint8_t priority) : scheduler_task("LCD", 12000 , priority, N
 bool RemoteUI::init(void) {
 
     printf("init screen (even though unnecessary)\n");
-    mainScreen = new Screen();
+    //mainScreen = new Screen();
     manager = new FrameManager(mainScreen);
 
 //    mainScreen->tft = &tft;
@@ -181,12 +181,12 @@ bool RemoteUI::run(void * p) {
 
     if (SW.getSwitch(1)){
         scroller++;
-        printf("inc\n");
+//        printf("inc\n");
     }
 
     if (SW.getSwitch(2)){
         scroller--;
-        printf("dec\n");
+//        printf("dec\n");
     }
 
     if (SW.getSwitch(3)) {
@@ -208,7 +208,7 @@ bool RemoteUI::run(void * p) {
     pwrLvlPos->y = scroller;
     pwrLabelPos->y = scroller;
 
-    printf("setting position\n");
+//    printf("setting position\n");
     pwrLvl->setPosition(*pwrLvlPos);
     pwrLabel->setPosition(*pwrLabelPos);
     // Point currentPOS;

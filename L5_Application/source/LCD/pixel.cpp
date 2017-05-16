@@ -8,14 +8,14 @@ void setPixelMaskCorners(Point *mc) {
     maskCorners = mc;
 }
 
-bool inBounds(int16_t x, int16_t y) {
+inline bool inBounds(int16_t x, int16_t y) {
     if(x < SCREEN_WIDTH && x >= 0 && y < SCREEN_HEIGHT && y >= 0) {
         if (maskCorners == NULL || (x >= maskCorners[UpperLeft].x && y >= maskCorners[UpperLeft].y && x <= maskCorners[LowerRight].x && y <= maskCorners[LowerRight].y  )) {
             return true;
         }
     }
     static int32_t v=0;
-    printf("out of bounds %d\n",v++);
+//    printf("out of bounds %d\n",v++);
     return false;
 }
 
