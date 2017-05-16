@@ -21,6 +21,7 @@ public:
     virtual bool run(void *param);
 
 private:
+    QueueHandle_t screenQueue;
     const float MAX_READ = 4095;
     int powerLevel = 0;
 
