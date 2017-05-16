@@ -30,12 +30,19 @@ bool RemoteControl::init(void)
 	LPC_PINCON->PINSEL1 |= (1 << 20); //SET UP ADC0.3 ON P0.26
 
 	//INIT GPIO PIN FOR BUTTON
-	LPC_GPIO2->FIODIR &= ~(1 << 6); //SET P2.6 AS INPUT FOR BUTTON
+	LPC_GPIO0->FIODIR &= ~(1 << 0); //SET P0.0 AS INPUT FOR BUTTON
 
 	//INIT EXTERNAL INTERRUPUT FOR BUTTON PRESS RISING EDGE
 	eint3_enable_port2(6, eint_rising_edge, buttonPressInterrupt);
 	vSemaphoreCreateBinary(buttonSignal);
 	xSemaphoreTake(buttonSignal, 0);
+
+	bool screenQueueShared = false;
+	//screenQueue = xQueueCreate(20, sizeof(onScreenData));
+	if (screenQueue)
+	{
+	    screenQueueShared = addSharedObject(shared_screenQueue, screenQueue);
+	}
 
     return true;
 }
@@ -49,9 +56,11 @@ bool RemoteControl::run(void *param)
 		while(LPC_GPIO2->FIOPIN & (1 << 6)) // WHILE BUTTON IS PRESSED
 		{
 			powerLevel = calcPower(adc0_get_reading(3));
+			//xQueueSend(screenQueue, &powerLevel, 0);
 			sendPowerLevel();
 		}
 		powerLevel = 0;
+		xQueueSend(screenQueue, &powerLevel, 0);
 		sendPowerLevel();
 	}
     return true;

@@ -34,7 +34,8 @@
 enum {
     shared_SensorQueue,    ///< Shared handle used by examples (producer and consumer tasks)
     shared_learnSemaphore, ///< Terminal command gives this semaphore to remoteTask (IR sensor task)
-    shared_ElectricBoardQueue ////< Shared handle used to queue commands to the board
+    shared_ElectricBoardQueue, ////< Shared handle used to queue commands to the board
+	shared_screenQueue
 };
 
 
