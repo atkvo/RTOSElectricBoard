@@ -15,6 +15,8 @@
 #include "source/LCD/TextFrame.hpp"
 #include "source/LCD/DrawFrame.hpp"
 #include "source/LCD/NumberFrame.hpp"
+#include "source/LCD/pixel.h"
+
 //#include "source/LCD/Screen.hpp"
 
 class RemoteUI : public scheduler_task {
