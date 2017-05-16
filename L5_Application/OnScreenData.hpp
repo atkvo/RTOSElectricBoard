@@ -3,10 +3,10 @@
 
 struct OnScreenData
 {
-    bool connectionStatus;
-    int powerLevel;
-    float batteryLevel;
-    bool eBreakActive;
+    bool connectionStatus = false;
+    bool eBreakActive = false;
+    int powerLevel = 0;
+    float batteryLevel = 0;
 };
 
 #endif /* L5_APPLICATION_REMOTECONTROL_HPP_ */
