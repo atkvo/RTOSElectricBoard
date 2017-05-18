@@ -9,7 +9,7 @@
 #include "adc0.h"
 #include "printf_lib.h"
 #include "wireless.h"
-
+#include <stdio.h>
 
 SemaphoreHandle_t buttonSignal;
 
@@ -34,9 +34,12 @@ bool RemoteControl::init(void)
 	//INIT GPIO PIN FOR BUTTON
 	LPC_GPIO0->FIODIR &= ~(1 << 0); //SET P0.0 AS INPUT FOR BUTTON
 
+
 	//INIT EXTERNAL INTERRUPUT FOR BUTTON PRESS RISING EDGE
-	eint3_enable_port2(6, eint_rising_edge, buttonPressInterrupt);
+	eint3_enable_port0(1, eint_rising_edge, buttonPressInterrupt);
+
 	vSemaphoreCreateBinary(buttonSignal);
+
 	xSemaphoreTake(buttonSignal, 0);
 
 	bool screenQueueShared = false;
