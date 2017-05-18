@@ -3,6 +3,8 @@
 #include "string.h"
 #include "draw.hpp"
 #include "Screen.hpp"
+#include "pixel.h"
+#include <stdio.h>
 
 TextFrame::TextFrame() : ViewFrame() {
 
@@ -25,11 +27,14 @@ TextFrame::TextFrame(Screen &screen, Point pos, Point sz, const char *_text) : V
 }
 
 TextFrame::TextFrame(Point _size, Point _position,const char *_text,uint8_t txSize) : ViewFrame(_size,_position) {
+//    printf("--constructor start--\n");
     setText(_text);
     textSize = txSize;
+//    printf("--constructor end--\n");
 }
 
 void TextFrame::setText(const char *_text) {
+
     if (strcmp(_text, text) != 0) {
         erase();
         static uint16_t size;
@@ -52,7 +57,10 @@ void TextFrame::draw() {
 }
 
 void TextFrame::erase() {
+
     setErase();
+//    printf("erase pixel was set\n");
     print(_screen,text, _position.x,_position.y,textSize);
+//    printf("printing occured\n");
     changed = true;
 }

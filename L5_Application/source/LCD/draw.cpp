@@ -8,6 +8,8 @@
 #include "draw.hpp"
 #include <string.h>
 
+static uint8_t * current_font = 0;
+
 
 void drawLine(Screen *screen, int32_t x1, int32_t y1, int32_t x2, int32_t y2) {
     static int32_t xdiff;
@@ -133,7 +135,7 @@ void drawChar(Screen *screen, char letter, uint16_t xpos, uint16_t ypos, uint16_
     for (col = 0; col < font_width; col++ ) {
         for (row = 0; row < font_height; row++ ) {
             static uint8_t txPixel;
-            txPixel = (screen->current_font[(index * (font_width + 1)) + col] >> row) & 0x01;
+            txPixel = (current_font[(index * (font_width + 1)) + col] >> row) & 0x01;
             for (px = 0; px < size; px++) {
                 for (py = 0; py < size; py++ ) {
                     if (txPixel) {
@@ -159,7 +161,7 @@ void print(Screen *screen, char * line, uint16_t xpos, uint16_t ypos,uint16_t si
 }
 
 void setFont( Screen *screen, uint8_t *font){
-    screen->current_font = font;
+    current_font = font;
 }
 
 

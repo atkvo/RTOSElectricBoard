@@ -1,6 +1,6 @@
 
 #include "DrawFrame.hpp"
-
+#include "pixel.h"
 DrawFrame::DrawFrame() : ViewFrame() {
 
 }

@@ -7,7 +7,7 @@
 
 
 class TextFrame : public ViewFrame {
-    char text[32];
+    char text[32] = {0};
     uint8_t textSize;
 public:
     TextFrame();

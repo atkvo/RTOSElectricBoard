@@ -70,29 +70,47 @@
 
 // All pins appear to be active low
 
+// PORT 1
+#define RESET_PIN 31
+#define CS_PIN    30
+#define CD_PIN    29
+#define WR_PIN    28
+#define RD_PIN    23
+
+#define SCRN_DELAY 1
+volatile uint32_t sig_time_elapsed = 0;
 //#define CS_ACTIVE *portOutputRegister(csport) &= ~cspin;
 //#define CS_IDLE *portOutputRegister(csport) |= cspin;
+//
+//#define CS_ACTIVE   chipSelect.setLow();
+//#define CS_IDLE     chipSelect.setHigh();
+#define CS_ACTIVE   LPC_GPIO1->FIOCLR = (1 << CS_PIN);//delay_us(SCRN_DELAY);
+#define CS_IDLE     LPC_GPIO1->FIOSET = (1 << CS_PIN);//delay_us(SCRN_DELAY);
 
-#define CS_ACTIVE   chipSelect.setLow();
-#define CS_IDLE     chipSelect.setHigh();
 
 //#define RD_IDLE *portOutputRegister(rdport) |= rdpin;
 //#define RD_ACTIVE *portOutputRegister(rdport) &= ~rdpin;
 
-#define RD_IDLE     readSelect.setHigh();
-#define RD_ACTIVE   readSelect.setLow();
+//#define RD_IDLE     readSelect.setHigh();
+//#define RD_ACTIVE   readSelect.setLow();
+#define RD_IDLE     LPC_GPIO1->FIOSET = (1 << RD_PIN);//delay_us(SCRN_DELAY);
+#define RD_ACTIVE   LPC_GPIO1->FIOCLR = (1 << RD_PIN);//delay_us(SCRN_DELAY);
 
 //#define WR_IDLE *portOutputRegister(wrport) |= wrpin;
 //#define WR_ACTIVE *portOutputRegister(wrport) &=~ wrpin;
 
-#define WR_IDLE     writeSelect.setHigh();
-#define WR_ACTIVE   writeSelect.setLow();
+//#define WR_IDLE     writeSelect.setHigh();
+//#define WR_ACTIVE   writeSelect.setLow();
+#define WR_IDLE     LPC_GPIO1->FIOSET = (1 << WR_PIN); sig_time_elapsed++; //for (sig_time_elapsed = 0; sig_time_elapsed < SCRN_DELAY; sig_time_elapsed++);//delay_us(SCRN_DELAY);
+#define WR_ACTIVE   LPC_GPIO1->FIOCLR = (1 << WR_PIN); sig_time_elapsed++;//for (sig_time_elapsed = 0; sig_time_elapsed < SCRN_DELAY; sig_time_elapsed++);//delay_us(SCRN_DELAY);
 
 //#define CD_DATA *portOutputRegister(cdport) |= cdpin;
 //#define CD_COMMAND *portOutputRegister(cdport) &= ~cdpin;
 
-#define CD_DATA     comm_data.setHigh();
-#define CD_COMMAND  comm_data.setLow();
+//#define CD_DATA     comm_data.setHigh();
+//#define CD_COMMAND  comm_data.setLow();
+#define CD_DATA     LPC_GPIO1->FIOSET = (1 << CD_PIN);//delay_us(SCRN_DELAY);
+#define CD_COMMAND  LPC_GPIO1->FIOCLR = (1 << CD_PIN);//delay_us(SCRN_DELAY);
 
 //#include "glcdfont.c"
 //#include <avr/pgmspace.h>
@@ -784,7 +802,8 @@ void TFTLCD::initDisplay(void) {
           printf("DELAY\n");
       } else {
           writeRegister(addr, data);
-          printf("Reg#: %3d RegSize: %3d addr: 0x%04x data: 0x%04x\n",i, regSize,addr,data);
+          delay_ms(1);
+//          printf("Reg#: %3d RegSize: %3d addr: 0x%04x data: 0x%04x\n",i, regSize,addr,data);
       }
 
 
@@ -921,7 +940,7 @@ inline uint8_t TFTLCD::read8(void) {
 /********************************** low level readwrite interface */
 
 // the C/D pin is high during write
-void TFTLCD::writeData(uint16_t data) {
+inline void TFTLCD::writeData(uint16_t data) {
 
   CS_ACTIVE
   CD_DATA
@@ -930,7 +949,7 @@ void TFTLCD::writeData(uint16_t data) {
 
   setWriteDir();
   write8(data >> 8);
-  
+
   WR_ACTIVE
   WR_IDLE
 

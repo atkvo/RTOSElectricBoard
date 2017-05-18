@@ -9,7 +9,6 @@ ViewFrame::ViewFrame() {
 
 ViewFrame::ViewFrame(Screen &screen) : _size(), _position(), _screen(&screen) {
     setCorners();
-    _screen = &screen;
 
 }
 
@@ -18,11 +17,9 @@ ViewFrame::ViewFrame(Point size, Point position) :  _size(size), _position(posit
     setMaskCorners();
 }
 
-ViewFrame::ViewFrame(Screen &screen, Point size, Point position) {
-    _size = size;
-    _position = position;
+ViewFrame::ViewFrame(Screen &screen, Point size, Point position) :_size(size), _position(position), _screen(&screen),_maskSize(SCREEN_WIDTH,SCREEN_HEIGHT),_maskPosition()  {
     setCorners();
-    _screen = &screen;
+    setMaskCorners();
 }
 
 
