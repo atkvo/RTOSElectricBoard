@@ -16,6 +16,7 @@
 #include "source/LCD/DrawFrame.hpp"
 #include "source/LCD/NumberFrame.hpp"
 #include "source/LCD/pixel.h"
+#include "OnScreenData.hpp"
 
 //#include "source/LCD/Screen.hpp"
 
@@ -24,7 +25,7 @@ class RemoteUI : public scheduler_task {
     Screen *mainScreen;
     FrameManager *manager;
     QueueHandle_t qh;
-
+//    struct OnScreenData OSD;
 
 public:
     RemoteUI(uint8_t priority);

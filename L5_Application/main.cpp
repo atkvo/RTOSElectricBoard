@@ -62,7 +62,7 @@ int main(void)
      * such that it can save remote control codes to non-volatile memory.  IR remote
      * control codes can be learned by typing the "learn" terminal command.
      */
-//    scheduler_add_task(new terminalTask(PRIORITY_HIGH));
+    scheduler_add_task(new terminalTask(PRIORITY_HIGH));
 
     /* Consumes very little CPU, but need highest priority to handle mesh network ACKs */
     scheduler_add_task(new wirelessTask(PRIORITY_CRITICAL));

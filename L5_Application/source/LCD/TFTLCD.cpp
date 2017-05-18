@@ -112,6 +112,11 @@ volatile uint32_t sig_time_elapsed = 0;
 #define CD_DATA     LPC_GPIO1->FIOSET = (1 << CD_PIN);//delay_us(SCRN_DELAY);
 #define CD_COMMAND  LPC_GPIO1->FIOCLR = (1 << CD_PIN);//delay_us(SCRN_DELAY);
 
+
+#define RD_WR_IDLE  LPC_GPIO1->FIOSET = (1 << RD_PIN) | (1 << WR_PIN);
+#define CS_WR_IDLE  LPC_GPIO1->FIOSET = (1 << CS_PIN) | (1 << WR_PIN);
+
+
 //#include "glcdfont.c"
 //#include <avr/pgmspace.h>
 //#include "pins_arduino.h"
@@ -648,7 +653,9 @@ void TFTLCD::fillScreen(uint16_t color)
     writeData_unsafe(color); 
   }
 
-  CS_IDLE
+//  CS_IDLE // trying to leave this out of the routines im using to speed things up
+  // this is based on the assumption that since there is only 1 screen the
+  // Chip Select can just stay active always
 }
 
 void TFTLCD::drawPixel(uint16_t x, uint16_t y, uint16_t color)
@@ -886,9 +893,14 @@ TFTLCD::TFTLCD(uint8_t cs, uint8_t cd, uint8_t wr,
   LPC_PINCON->PINSEL4 &= ~(0xFFFF);
   LPC_PINCON->PINMODE4 &= ~(0xFFFF);
 
+  // set them to write direction
+  setWriteDir();
+
   cursor_y = cursor_x = 0;
   textsize = 1;
   textcolor = 0xFFFF;
+
+  CS_ACTIVE // shortcut incase i can remove it from all the write commands.
 }
 
 
@@ -942,12 +954,13 @@ inline uint8_t TFTLCD::read8(void) {
 // the C/D pin is high during write
 inline void TFTLCD::writeData(uint16_t data) {
 
-  CS_ACTIVE
+//  CS_ACTIVE // beign lazy to speed things up. this is initialize in the constructor
   CD_DATA
-  RD_IDLE
-  WR_IDLE
+//  RD_IDLE
+//  WR_IDLE
+  RD_WR_IDLE
 
-  setWriteDir();
+  //  setWriteDir(); // read operation is never used so write direction never changes. so we dont need to call it each time
   write8(data >> 8);
 
   WR_ACTIVE
@@ -959,9 +972,9 @@ inline void TFTLCD::writeData(uint16_t data) {
 
 
   WR_IDLE
+//  CS_IDLE
+//  CS_WR_IDLE
 
-
-  CS_IDLE
 
 
 }
@@ -993,12 +1006,13 @@ inline void TFTLCD::writeData_unsafe(uint16_t data) {
 // the C/D pin is low during write
 inline void TFTLCD::writeCommand(uint16_t cmd) {
 
-  CS_ACTIVE
+//  CS_ACTIVE // beign lazy to speed things up. this is initialize in the constructor
   CD_COMMAND
-  RD_IDLE  
-  WR_IDLE
+//  RD_IDLE
+//  WR_IDLE
+  RD_WR_IDLE
 
-  setWriteDir();
+//  setWriteDir(); // read operation is never used so write direction never changes. so we dont need to call it each time
   write8((uint8_t)(cmd >> 8));
 
   WR_ACTIVE
@@ -1011,9 +1025,8 @@ inline void TFTLCD::writeCommand(uint16_t cmd) {
   WR_ACTIVE
 
   WR_IDLE
-
-  CS_IDLE
-
+//  CS_IDLE
+//  CS_WR_IDLE
 
 }
 

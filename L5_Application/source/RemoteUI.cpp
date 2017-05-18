@@ -10,21 +10,30 @@
 #include <stdio.h>
 //#include <stdlib.h>
 #include "LCD/draw.hpp"
-#include "OnScreenData.hpp"
 #include "queue.h"
+#include "shared_handles.h"
+
 #include "source/LCD/pixel.h"
 
 //#include <sstream>
 //#include <string>
 
-RemoteUI::RemoteUI(uint8_t priority) : scheduler_task("LCD", 12000 , priority, NULL), tft(0, 0, 0, 0, 0) {
+RemoteUI::RemoteUI(uint8_t priority) : scheduler_task("LCD", 2048 , priority, NULL), tft(0, 0, 0, 0, 0) {
     //    setRunDuration(33); // 30 frames per second refresh
-        setRunDuration(33); // 30 frames per second refresh
+        setRunDuration(32); // 24 frames per second refresh
+
 
 }
 
 bool RemoteUI::init(void) {
-    qh = xQueueCreate(1,sizeof(OnScreenData));
+//    bool screenQueueShared = false;
+//    qh = xQueueCreate(20, sizeof(OnScreenData));
+//    if (qh)
+//    {
+//        screenQueueShared = addSharedObject(shared_screenQueue, qh);
+//    }
+
+
     printf("init screen (even though unnecessary)\n");
     mainScreen = new Screen();
     manager = new FrameManager(mainScreen);
@@ -50,7 +59,7 @@ bool RemoteUI::run(void * p) {
     static TextFrame *nameFrame;
     static TextFrame *pwrLabel;
     static TextFrame *pwrLvl;
-    static DrawFrame *rec1;
+    static DrawFrame *pwrLvlBorders;
     static int32_t *border1params;
     static int32_t *border2params;
 
@@ -59,7 +68,8 @@ bool RemoteUI::run(void * p) {
 
     static const char * bname = "<eBoard>";
 
-
+    static DrawFrame *batteryBorders;
+    static int32_t *batteryBorderparams;
     static DrawFrame *battery;
     static int32_t *tip;
     static int32_t *bl1;
@@ -96,58 +106,67 @@ bool RemoteUI::run(void * p) {
         border2params[3] = rec_height;
         printf("set border parameters -----\n");
 
-        rec1 = new DrawFrame(Point(240,3),Point(0,SCREEN_HEIGHT/2 - (rec_height/2)));
-        rec1->setMask(Point(0,0),Point(SCREEN_WIDTH,SCREEN_HEIGHT));
+        pwrLvlBorders = new DrawFrame(Point(240,3),Point(0,SCREEN_HEIGHT/2 - (rec_height/2)));
+        pwrLvlBorders->setMask(Point(0,0),Point(SCREEN_WIDTH,SCREEN_HEIGHT));
 
-        rec1->addDrawing(d_rect,border1params);
-        rec1->addDrawing(d_rect,border2params);
+        pwrLvlBorders->addDrawing(d_rect,border1params);
+        pwrLvlBorders->addDrawing(d_rect,border2params);
         printf("created draw frame and added border parameters -----\n");
 
 //        numFrame = new NumberFrame(Point(50,50),Point(SCREEN_WIDTH/2 + 70,150),6);
 
         printf("created draw frame for numframe -----\n");
 
-        battery = new DrawFrame(Point(40,20),Point(200,10));
-
+        battery = new DrawFrame(Point(30,20),Point(200,5));
         printf("created draw frame for battery -----\n");
+
+
+        batteryBorderparams = (int32_t*)malloc(4 * sizeof(int32_t));
+        batteryBorderparams[0] = margin;
+        batteryBorderparams[1] = 0;
+        batteryBorderparams[2] = SCREEN_WIDTH - margin;
+        batteryBorderparams[3] = 3;
+        batteryBorders = new DrawFrame(Point(240,3),Point(0,35));
+        batteryBorders->addDrawing(d_rect,border1params);
+
 
 
         tip = (int32_t*)malloc(4 * sizeof(int32_t));
         tip[0] = 1;
-        tip[1] = 17;
+        tip[1] = 7;
         tip[2] = 3;
-        tip[3] = 22;
+        tip[3] = 12;
 
         bl1 = (int32_t*)malloc(4 * sizeof(int32_t));
         bl1[0] = 5;
-        bl1[1] = 14;
+        bl1[1] = 4;
         bl1[2] = 7;
-        bl1[3] = 25;
+        bl1[3] = 15;
 
 
         bl2 = (int32_t*)malloc(4 * sizeof(int32_t));
         bl2[0] = 9;
-        bl2[1] = 14;
+        bl2[1] = 4;
         bl2[2] = 11;
-        bl2[3] = 25;
+        bl2[3] = 15;
 
         bl3 = (int32_t*)malloc(4 * sizeof(int32_t));
         bl3[0] = 13;
-        bl3[1] = 14;
+        bl3[1] = 4;
         bl3[2] = 15;
-        bl3[3] = 25;
+        bl3[3] = 15;
 
         bl4 = (int32_t*)malloc(4 * sizeof(int32_t));
         bl4[0] = 17;
-        bl4[1] = 14;
+        bl4[1] = 4;
         bl4[2] = 19;
-        bl4[3] = 25;
+        bl4[3] = 15;
 
         box = (int32_t*)malloc(4 * sizeof(int32_t));
         box[0] = 3;
-        box[1] = 12;
+        box[1] = 2;
         box[2] = 21;
-        box[3] = 27;
+        box[3] = 17;
 
         battery->addDrawing(d_rect,tip);
         battery->addDrawing(d_rect,bl1);
@@ -168,27 +187,29 @@ bool RemoteUI::run(void * p) {
         printf("made pwrLabel\n");
         pwrLvl = new TextFrame(Point(50,50),*pwrLvlPos,"",3);
         printf("made pwrLevll\n");
-        nameFrame = new TextFrame(Point(200,50),Point(30,280),bname,4);
+        nameFrame = new TextFrame(Point(200,50),Point(50,280),bname,3);
         printf("made text frames\n");
-        TextFrame *txt = new TextFrame(Point(200,50),Point(20,20),"BOARD CONNECTION: ACTIVE",1);
-        TextFrame *txt2 = new TextFrame(Point(200,50),Point(20,40),"OP. TIME ELAPSED: XX:XX",1);
-        TextFrame *txt3 = new TextFrame(Point(200,50),Point(20,60),"EST. TIME REMAINING: XX:XX",1);
+        TextFrame *connectionLabel = new TextFrame(Point(200,50),Point(20,55),"CONN: ACTIVE",2);
+        TextFrame *opTimeLabel = new TextFrame(Point(200,50),Point(20,80),"OP. TIME: XX:XX",2);
+        TextFrame *timeRemLabel = new TextFrame(Point(200,50),Point(20,105),"TIME LEFT: XX:XX",2);
 
         printf("made txt frames drawings\n");
 
         manager->addFrame(nameFrame);
         manager->addFrame(pwrLabel);
         manager->addFrame(pwrLvl);
-        manager->addFrame((ViewFrame*)rec1);
+        manager->addFrame((ViewFrame*)pwrLvlBorders);
+        manager->addFrame((ViewFrame*)batteryBorders);
         manager->addFrame((ViewFrame*)battery);
-        manager->addFrame((ViewFrame*)txt);
-        manager->addFrame((ViewFrame*)txt2);
-        manager->addFrame((ViewFrame*)txt3);
+        manager->addFrame((ViewFrame*)connectionLabel);
+        manager->addFrame((ViewFrame*)opTimeLabel);
+        manager->addFrame((ViewFrame*)timeRemLabel);
 
         pwrLabel->setMask(Point(0,140),Point(240,40));
         pwrLvl->setMask(Point(0,140),Point(240, 40));
-        pwrLabelPos->x = 10 + SCREEN_WIDTH/2 - (strlen(test)* font_size/2 * font_width);
-        pwrLvlPos->x = 15;
+//        pwrLabelPos->x = 10 + SCREEN_WIDTH/2 - (strlen(test)* font_size/2 * font_width);
+        pwrLabelPos->x = 20;
+        pwrLvlPos->x = 160;
 
         printf("end first run\n");
         first_time = false;
@@ -217,16 +238,11 @@ bool RemoteUI::run(void * p) {
         testVal--;
     }
 
-
-
+//    xQueueReceive( qh, &OSD, 0 );
+//    testVal = OSD.powerLevel;
     snprintf(testValStr,8,"%d",testVal);
-    //    pwrLvl->setText(itoa(testVal));
-//    static stringstream ss;
-//    ss.str(std::string());
-//    ss << testVal;
-//    printf("stream: %s\n",ss.str().c_str());
-////    const char *testValStr = ss.str().c_str();
-//    pwrLvl->setText(ss.str().c_str());
+
+
     pwrLvl->setText(testValStr);
     pwrLvlPos->y = scroller;
     pwrLabelPos->y = scroller;
@@ -234,16 +250,8 @@ bool RemoteUI::run(void * p) {
 //    printf("setting position\n");
     pwrLvl->setPosition(*pwrLvlPos);
     pwrLabel->setPosition(*pwrLabelPos);
-    // Point currentPOS;
-    // currentPOS = pwrLabel->getPosition();
-    // printf("pwrLabel position: %d %d\n", currentPOS.x, currentPOS.y);
-    // print(mainScreen,(char *)test,SCREEN_WIDTH/2 - (strlen(test)* font_size/2 * font_width),scroller,font_size);
-
-    // drawRec(mainScreen, margin,SCREEN_HEIGHT/2 - (rec_height/2),SCREEN_WIDTH - margin,SCREEN_HEIGHT/2 - (rec_height/2)+3);
-    // drawRec(mainScreen,margin, SCREEN_HEIGHT/2 + (rec_height/2) - 3,SCREEN_WIDTH - margin,SCREEN_HEIGHT/2 + (rec_height/2));
 
     manager->drawFrames();
-    // mainScreen->drawBuffer();
 
     return true;
 }
