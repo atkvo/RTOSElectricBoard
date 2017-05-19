@@ -27,9 +27,10 @@
 #include "examples/examples.hpp"
 #include "ElectricBoardControl.hpp"
 #include "ElectricBoardReceiver.hpp"
+#include "ElectricBoardSender.hpp"
 
-//#define BOARD_CONTROLLER
-#define REMOTE_CONTROLLER
+#define BOARD_CONTROLLER
+//#define REMOTE_CONTROLLER
 
 #ifdef REMOTE_CONTROLLER
 #include "RemoteControl.hpp"
@@ -62,7 +63,7 @@ int main(void)
      * such that it can save remote control codes to non-volatile memory.  IR remote
      * control codes can be learned by typing the "learn" terminal command.
      */
-    scheduler_add_task(new terminalTask(PRIORITY_HIGH));
+    //scheduler_add_task(new terminalTask(PRIORITY_HIGH));
 
     /* Consumes very little CPU, but need highest priority to handle mesh network ACKs */
     scheduler_add_task(new wirelessTask(PRIORITY_CRITICAL));
@@ -75,6 +76,7 @@ int main(void)
 #ifdef BOARD_CONTROLLER
     scheduler_add_task(new ElectricBoardControl(PRIORITY_LOW));
     scheduler_add_task(new ElectricBoardReceiver(PRIORITY_LOW));
+    scheduler_add_task(new ElectricBoardSender(PRIORITY_LOW));
 #endif
     // scheduler_add_task(new FlashMemoryTask(PRIORITY_LOW));
 
