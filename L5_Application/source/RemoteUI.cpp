@@ -14,6 +14,8 @@
 #include "shared_handles.h"
 #include "printf_lib.h"
 #include "source/LCD/pixel.h"
+#include "rtc.h"
+#include <time.h>
 
 //#include <sstream>
 //#include <string>
@@ -28,10 +30,8 @@ RemoteUI::RemoteUI(uint8_t priority) : scheduler_task("LCD", 2048 , priority, NU
 bool RemoteUI::init(void) {
 //    bool screenQueueShared = false;
 //    qh = xQueueCreate(20, sizeof(OnScreenData));
-//    if (qh)
-//    {
-//        screenQueueShared = addSharedObject(shared_screenQueue, qh);
-//    }
+
+    qh = getSharedObject(shared_screenQueue);
 
 
     printf("init screen (even though unnecessary)\n");
@@ -62,8 +62,10 @@ bool RemoteUI::run(void * p) {
     static DrawFrame *pwrLvlBorders;
     static int32_t *border1params;
     static int32_t *border2params;
-
+    static TextFrame *timeLabel;
+    static TextFrame *accelDataLabel;
     static NumberFrame *numFrame;
+    static TextFrame *eBrakeLabel;
 
 
     static const char * bname = "<eBoard>";
@@ -175,6 +177,7 @@ bool RemoteUI::run(void * p) {
         battery->addDrawing(d_rect,bl4);
         battery->addDrawing(d_rect,box);
 
+
         printf("added drawings\n");
 
         // rec2 = new DrawFrame(Point(240,3),Point(margin, SCREEN_HEIGHT/2 + (rec_height/2) - 3));
@@ -190,11 +193,16 @@ bool RemoteUI::run(void * p) {
         nameFrame = new TextFrame(Point(200,50),Point(50,280),bname,3);
         printf("made text frames\n");
         TextFrame *connectionLabel = new TextFrame(Point(200,50),Point(20,55),"CONN: ACTIVE",2);
-        TextFrame *opTimeLabel = new TextFrame(Point(200,50),Point(20,80),"OP. TIME: XX:XX",2);
-        TextFrame *timeRemLabel = new TextFrame(Point(200,50),Point(20,105),"TIME LEFT: XX:XX",2);
-
+        TextFrame *opTimeLabel = new TextFrame(Point(200,50),Point(20,80),"OP. TIME:",2);
+        TextFrame *accelLabel = new TextFrame(Point(200,50),Point(20,105),"ACCEL:",2);
+        timeLabel = new TextFrame(Point(200,50),Point(150,80),"",2);
+        accelDataLabel = new TextFrame(Point(200,50),Point(100,105),"",2);
+        eBrakeLabel = new TextFrame(Point(200,50),Point(50,10),"*eBrake*",2);
         printf("made txt frames drawings\n");
 
+        manager->addFrame(eBrakeLabel);
+        manager->addFrame(accelDataLabel);
+        manager->addFrame(timeLabel);
         manager->addFrame(nameFrame);
         manager->addFrame(pwrLabel);
         manager->addFrame(pwrLvl);
@@ -203,7 +211,8 @@ bool RemoteUI::run(void * p) {
         manager->addFrame((ViewFrame*)battery);
         manager->addFrame((ViewFrame*)connectionLabel);
         manager->addFrame((ViewFrame*)opTimeLabel);
-        manager->addFrame((ViewFrame*)timeRemLabel);
+        manager->addFrame((ViewFrame*)accelLabel);
+        manager->addFrame((ViewFrame*)accelDataLabel);
 
         pwrLabel->setMask(Point(0,140),Point(240,40));
         pwrLvl->setMask(Point(0,140),Point(240, 40));
@@ -219,7 +228,8 @@ bool RemoteUI::run(void * p) {
     static int32_t scroller = 150;
     static int16_t testVal = 0;
     static char testValStr[8];
-
+    static char timeStamp[10];
+    static char accelDataStr[10];
 
     if (SW.getSwitch(1)){
         scroller++;
@@ -231,16 +241,17 @@ bool RemoteUI::run(void * p) {
         printf("dec\n");
     }
 
-    if (SW.getSwitch(3)) {
-        testVal++;
-    }
-    if (SW.getSwitch(4)) {
-        testVal--;
-    }
+//    if (SW.getSwitch(3)) {
+//        testVal++;
+//    }
+//    if (SW.getSwitch(4)) {
+//        testVal--;
+//    }
 
-	mesh_packet_t packet;
-    OnScreenData dataRx;
-    if (wireless_get_rx_pkt(&packet, 500))
+
+	 mesh_packet_t packet;
+     OnScreenData dataRx;
+    if (wireless_get_rx_pkt(&packet, 1))
     {
     	dataRx.eBreakActive = packet.data[0];
     	if (packet.data[2] == 0)
@@ -251,14 +262,47 @@ bool RemoteUI::run(void * p) {
     	{
     		dataRx.accelerometer = (packet.data[1] << 8) + packet.data[2];
     	}
+
+        snprintf(accelDataStr,10,"%d", dataRx.accelerometer);
+        accelDataLabel->setText(accelDataStr);
+        eBrakeLabel->active = dataRx.eBreakActive;
+
+        if(dataRx.eBreakActive) {
+//            printf("ebrake active\n");
+            eBrakeLabel->setText("*eBrake*");
+        } else {
+//            printf("ebrake not active\n");
+            eBrakeLabel->setText("");
+        }
+    } else {
+//        printf("nothing recvd\n");
     }
 
-//    xQueueReceive( qh, &OSD, 0 );
+
+
+//    printf("Accel Data:  %i\n",dataRx.accelerometer);
+    qh = getSharedObject(shared_screenQueue);
+    if (qh != NULL)
+    {
+        xQueueReceive( qh, &OSD, 5 );
+//        printf("power level recv\n");
+    }
+//    printf("powerlevel %d\n",OSD.powerLevel);
 //    testVal = OSD.powerLevel;
-    snprintf(testValStr,8,"%d",testVal);
+    if(LPC_GPIO0->FIOPIN & (1 << 0)) {
+        snprintf(testValStr,8,"%d",OSD.powerLevel);
+        pwrLvl->setText(testValStr);
+    } else {
+        pwrLvl->setText("0");
+    }
+
+    time_t rawtime;
+    time (&rawtime);
+    strftime(timeStamp, 20, "%M:%S", localtime(&rawtime));
+    timeLabel->setText(timeStamp);
 
 
-    pwrLvl->setText(testValStr);
+
     pwrLvlPos->y = scroller;
     pwrLabelPos->y = scroller;
 

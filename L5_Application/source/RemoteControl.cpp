@@ -57,6 +57,8 @@ bool RemoteControl::init(void)
 bool RemoteControl::run(void *param)
 {
 	OnScreenData data;
+//    data.powerLevel = 0;
+//    xQueueSend(screenQueue, &data, 0);
 	while(xSemaphoreTake(buttonSignal, portMAX_DELAY)) //WAIT FOR BUTTON PRESS TO GIVE BINARY SEMAPHORE
 	{
 		u0_dbg_printf("Button pressed! \n");
@@ -70,6 +72,7 @@ bool RemoteControl::run(void *param)
 		powerLevel = 0;
 		data.powerLevel = 0;
 		xQueueSend(screenQueue, &data, 0);
+
 		sendPowerLevel();
 	}
     return true;

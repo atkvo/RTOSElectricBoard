@@ -29,8 +29,8 @@
 #include "ElectricBoardReceiver.hpp"
 #include "ElectricBoardSender.hpp"
 
-#define BOARD_CONTROLLER
-//#define REMOTE_CONTROLLER
+//#define BOARD_CONTROLLER
+#define REMOTE_CONTROLLER
 
 #ifdef REMOTE_CONTROLLER
 #include "RemoteControl.hpp"
@@ -81,7 +81,7 @@ int main(void)
     // scheduler_add_task(new FlashMemoryTask(PRIORITY_LOW));
 
 #ifdef REMOTE_CONTROLLER
-    scheduler_add_task(new RemoteControl(PRIORITY_HIGH));
+    scheduler_add_task(new RemoteControl(PRIORITY_MEDIUM));
 //    scheduler_add_task(new LCDcontroller(PRIORITY_MEDIUM));
     scheduler_add_task(new RemoteUI(PRIORITY_MEDIUM));
 

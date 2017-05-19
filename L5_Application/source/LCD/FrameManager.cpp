@@ -47,7 +47,7 @@
                 thisFrame = frames[frame_index];
                 // _screen->setMask(&thisFrame->getMaskPosition(),&thisFrame->getMaskSize());
                 // _screen->setMask(thisFrame->getMaskCorners());
-                 if(thisFrame->changed){
+                 if(thisFrame->changed && thisFrame->active){
                     setPixelMaskCorners(thisFrame->getMaskCorners());
                     frames[frame_index]->draw();
                  }

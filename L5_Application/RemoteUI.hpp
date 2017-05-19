@@ -25,7 +25,7 @@ class RemoteUI : public scheduler_task {
     Screen *mainScreen;
     FrameManager *manager;
     QueueHandle_t qh;
-//    struct OnScreenData OSD;
+    OnScreenData OSD;
 
 public:
     RemoteUI(uint8_t priority);
