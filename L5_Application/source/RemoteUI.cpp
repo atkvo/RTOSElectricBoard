@@ -12,7 +12,7 @@
 #include "LCD/draw.hpp"
 #include "queue.h"
 #include "shared_handles.h"
-
+#include "printf_lib.h"
 #include "source/LCD/pixel.h"
 
 //#include <sstream>
@@ -236,6 +236,21 @@ bool RemoteUI::run(void * p) {
     }
     if (SW.getSwitch(4)) {
         testVal--;
+    }
+
+	mesh_packet_t packet;
+    OnScreenData dataRx;
+    if (wireless_get_rx_pkt(&packet, 500))
+    {
+    	dataRx.eBreakActive = packet.data[0];
+    	if (packet.data[2] == 0)
+    	{
+    		dataRx.accelerometer = packet.data[1];
+    	}
+    	else
+    	{
+    		dataRx.accelerometer = (packet.data[1] << 8) + packet.data[2];
+    	}
     }
 
 //    xQueueReceive( qh, &OSD, 0 );
