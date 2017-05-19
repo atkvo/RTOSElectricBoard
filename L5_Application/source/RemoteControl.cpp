@@ -13,7 +13,7 @@
 
 SemaphoreHandle_t buttonSignal;
 
-RemoteControl::RemoteControl(uint8_t priority) : scheduler_task("remoteControl", 1024, priority, NULL)
+RemoteControl::RemoteControl(uint8_t priority) : scheduler_task("remoteControl", 3000, priority, NULL)
 {
 }
 
@@ -36,14 +36,14 @@ bool RemoteControl::init(void)
 
 
 	//INIT EXTERNAL INTERRUPUT FOR BUTTON PRESS RISING EDGE
-	eint3_enable_port0(1, eint_rising_edge, buttonPressInterrupt);
+	eint3_enable_port0(0, eint_rising_edge, buttonPressInterrupt);
 
 	vSemaphoreCreateBinary(buttonSignal);
 
 	xSemaphoreTake(buttonSignal, 0);
 
 	bool screenQueueShared = false;
-	screenQueue = xQueueCreate(20, sizeof(OnScreenData));
+	screenQueue = xQueueCreate(1, sizeof(OnScreenData));
 	if (screenQueue)
 	{
 	    screenQueueShared = addSharedObject(shared_screenQueue, screenQueue);
@@ -59,12 +59,15 @@ bool RemoteControl::run(void *param)
 	OnScreenData data;
 	while(xSemaphoreTake(buttonSignal, portMAX_DELAY)) //WAIT FOR BUTTON PRESS TO GIVE BINARY SEMAPHORE
 	{
-		while(LPC_GPIO2->FIOPIN & (1 << 6)) // WHILE BUTTON IS PRESSED
+		u0_dbg_printf("Button pressed! \n");
+		while(LPC_GPIO0->FIOPIN & (1 << 0)) // WHILE BUTTON IS PRESSED
 		{
-			data.powerLevel = calcPower(adc0_get_reading(3));
+			powerLevel = calcPower(adc0_get_reading(3));
+			data.powerLevel = powerLevel;
 			xQueueSend(screenQueue, &data, 0);
 			sendPowerLevel();
 		}
+		powerLevel = 0;
 		data.powerLevel = 0;
 		xQueueSend(screenQueue, &data, 0);
 		sendPowerLevel();
@@ -81,7 +84,6 @@ float RemoteControl::calcPower(int input)
 
 void RemoteControl::sendPowerLevel(void)
 {
-	//TODO
 	u0_dbg_printf("Sending power level of %i \n", powerLevel);
 	wireless_send(MESH_BROADCAST_ADDR, mesh_pkt_nack, (int*)&powerLevel, 1, 0);
 }
