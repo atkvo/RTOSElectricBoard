@@ -16,6 +16,7 @@
 #include "source/LCD/pixel.h"
 #include "rtc.h"
 #include <time.h>
+#include "soft_timer.hpp"
 
 //#include <sstream>
 //#include <string>
@@ -66,7 +67,7 @@ bool RemoteUI::run(void * p) {
     static TextFrame *accelDataLabel;
     static NumberFrame *numFrame;
     static TextFrame *eBrakeLabel;
-
+    static TextFrame *connectionStatusLabel;
 
     static const char * bname = "<eBoard>";
 
@@ -88,7 +89,7 @@ bool RemoteUI::run(void * p) {
 
     static int32_t margin = 15;
     static int32_t rec_height = 50;
-
+    static  SoftTimer activeTimer(1000);
 
     if (first_time) {
         printf("first run -----\n");
@@ -192,7 +193,8 @@ bool RemoteUI::run(void * p) {
         printf("made pwrLevll\n");
         nameFrame = new TextFrame(Point(200,50),Point(50,280),bname,3);
         printf("made text frames\n");
-        TextFrame *connectionLabel = new TextFrame(Point(200,50),Point(20,55),"CONN: ACTIVE",2);
+        TextFrame *connectionLabel = new TextFrame(Point(200,50),Point(20,55),"CONN:",2);
+        connectionStatusLabel = new TextFrame(Point(200,50),Point(100,55),"",2);
         TextFrame *opTimeLabel = new TextFrame(Point(200,50),Point(20,80),"OP. TIME:",2);
         TextFrame *accelLabel = new TextFrame(Point(200,50),Point(20,105),"ACCEL:",2);
         timeLabel = new TextFrame(Point(200,50),Point(150,80),"",2);
@@ -200,6 +202,7 @@ bool RemoteUI::run(void * p) {
         eBrakeLabel = new TextFrame(Point(200,50),Point(50,10),"*eBrake*",2);
         printf("made txt frames drawings\n");
 
+        manager->addFrame(connectionStatusLabel);
         manager->addFrame(eBrakeLabel);
         manager->addFrame(accelDataLabel);
         manager->addFrame(timeLabel);
@@ -262,12 +265,14 @@ bool RemoteUI::run(void * p) {
     	{
     		dataRx.accelerometer = (packet.data[1] << 8) + packet.data[2];
     	}
-
-        snprintf(accelDataStr,10,"%d", dataRx.accelerometer);
+    	connectionStatusLabel->setText("ACTIVE");
+        snprintf(accelDataStr,10,"%5d", dataRx.accelerometer);
         accelDataLabel->setText(accelDataStr);
         eBrakeLabel->active = dataRx.eBreakActive;
 
+
         if(dataRx.eBreakActive) {
+            \
 //            printf("ebrake active\n");
             eBrakeLabel->setText("*eBrake*");
         } else {
@@ -275,7 +280,13 @@ bool RemoteUI::run(void * p) {
             eBrakeLabel->setText("");
         }
     } else {
-//        printf("nothing recvd\n");
+
+        if (activeTimer.expired()) {
+            connectionStatusLabel->setText("");
+     //        printf("nothing recvd\n");
+            activeTimer.reset();
+        }
+
     }
 
 
@@ -290,10 +301,10 @@ bool RemoteUI::run(void * p) {
 //    printf("powerlevel %d\n",OSD.powerLevel);
 //    testVal = OSD.powerLevel;
     if(LPC_GPIO0->FIOPIN & (1 << 0)) {
-        snprintf(testValStr,8,"%d",OSD.powerLevel);
+        snprintf(testValStr,8,"%2d",OSD.powerLevel);
         pwrLvl->setText(testValStr);
     } else {
-        pwrLvl->setText("0");
+        pwrLvl->setText(" 0");
     }
 
     time_t rawtime;
